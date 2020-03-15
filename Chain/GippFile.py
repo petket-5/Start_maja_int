@@ -87,8 +87,8 @@ class GippSet(object):
 
     platforms = ["sentinel2", "landsat8", "venus"]
     plugins = {"sentinel2": ["natif", "muscate", "tm"],
-               "landsat8": ["natif", "muscate"],
-               "venus": ["natif", "muscate"]}
+               "landsat8": ["natif", "muscate", "tm"],
+               "venus": ["natif", "muscate", "tm"]}
 
     def __init__(self, root, platform, gtype, cams=False, log_level=logging.INFO):
         """
@@ -105,8 +105,11 @@ class GippSet(object):
             raise ValueError("Unknown platform found: %s" % platform)
         if gtype not in self.plugins[platform]:
             raise ValueError("No Plugin of type %s existing for platform %s" % (gtype, platform))
+        if gtype == "tm" and platform in ["landsat8", "venus"]:
+            self.gtype = "natif"
+        else:
+            self.gtype = gtype
         self.platform = platform
-        self.gtype = gtype
         self.cams_suffix = "_CAMS" if cams else ""
         self.log_level = log_level
         self.n_sat = 2 if platform == "sentinel2" else 1

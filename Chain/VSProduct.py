@@ -121,7 +121,10 @@ class VenusMuscate(MajaProduct):
     @property
     def tile(self):
         import re
-        site = self.base.split("_")[3]
+        if len(self.base.split("_")) == 7:
+            site = "_".join(self.base.split("_")[3:5])
+        else:
+            site = self.base.split("_")[3]
         tile = re.search(self.reg_tile, site)
         if tile:
             return tile.group()[1:]

@@ -47,9 +47,9 @@ class VenusNatif(MajaProduct):
         site = re.search(site_reg, self.base)
         tile = re.search(self.reg_tile, site_basic)
         if site:
-            return site.group(1)
+            return site.group(1).rstrip("_")
         if tile:
-            return tile.group()[1:]
+            return tile.group()[1:].rstrip("_")
 
         return site_basic
 

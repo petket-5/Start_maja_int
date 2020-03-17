@@ -178,7 +178,7 @@ class Backward(Workplan):
     def __str__(self):
         return str("%19s | %5s | %8s | %70s | %15s" % (self.date, self.tile,
                                                        self.mode, self.l1.base,
-                                                       "Backward of %s products" % str(len(self.l1_list) + 1)
+                                                       "Backward of %s products" % str(len(self.l1_list))
                                                        + (" with CAMS" if self.aux_files else "")))
 
 

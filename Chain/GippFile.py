@@ -222,7 +222,8 @@ class GippSet(object):
             return False
         if len(eefs) < 4:
             return False
-        if len(hdrs) != len(dbls) != n_files_per_model * self.n_sat * found_n_models:
+        # Models = 4 (TOCR, DIRT, DIFT, ALBD) + 1 constant for WATV per satellite
+        if len(hdrs) != len(dbls) != n_files_per_model * self.n_sat * (found_n_models - 1) + 1 * self.n_sat:
             return False
 
         return True

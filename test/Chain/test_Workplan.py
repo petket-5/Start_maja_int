@@ -52,7 +52,7 @@ class TestWorkplan(unittest.TestCase):
 
     def test_name_hash(self):
         product_name = "S2B_MSIL1C_20400602T121200_N0044_R001_T31TCH_20400602T121200.SAFE"
-        self.assertEqual(Workplan.get_dirname(product_name), "f9bfae79e5aa4a59feda03c8d6717f35")
+        self.assertEqual(Workplan.hash_dirname(product_name), "f9bfae79e5aa4a59feda03c8d6717f35")
 
     def test_wp_init_nofolders(self):
         with self.assertRaises(AssertionError):

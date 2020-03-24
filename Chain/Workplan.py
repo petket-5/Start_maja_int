@@ -11,6 +11,7 @@ Project:        Start-MAJA, CNES
 
 import os
 import logging
+from datetime import timedelta
 
 logger = logging.getLogger("root")
 
@@ -20,6 +21,8 @@ class Workplan(object):
     Stores all information about a single execution of Maja
     """
     mode = "INIT"
+    # Maximum time difference between two products before restarting the time-series:
+    max_l2_diff = timedelta(days=14)
 
     def __init__(self, wdir, outdir, l1, log_level="INFO", **kwargs):
         supported_params = {
@@ -34,7 +37,7 @@ class Workplan(object):
         self.outdir = outdir
 
         self.root = wdir
-        self.input_dir = os.path.join(self.root, "Start_maja_" + self.get_dirname(self.l1.base))
+        self.input_dir = os.path.join(self.root, "Start_maja_" + self.hash_dirname(self.l1.base))
         self.wdir = os.path.join(self.input_dir, "maja_working_directory")
 
         self.tile = self.l1.tile
@@ -59,7 +62,42 @@ class Workplan(object):
         raise NotImplementedError
 
     @staticmethod
-    def get_dirname(name):
+    def get_available_products(root, level, tile):
+        """
+        Parse the products from the constructed L1- or L2- directories
+        :param root: The root folder to be searched from
+        :param level: The product level to be search for
+        :param tile: The tileID
+        :return: A list of MajaProducts available in the given directory
+        """
+        from Chain import Product
+        import os
+        avail_folders = [os.path.join(root, f) for f in os.listdir(root)]
+        avail_products = [Product.MajaProduct(f).factory() for f in avail_folders if os.path.isdir(f)]
+        # Remove the ones that didn't work:
+        avail_products = [prod for prod in avail_products if prod is not None]
+        return [prod for prod in avail_products if prod.level == level.lower() and prod.tile == tile]
+
+    @staticmethod
+    def filter_cams_by_products(cams_files, prod_dates, delta_t=timedelta(hours=12)):
+        """
+        Get all CAMS files that are between the given prod_dates +- delta_t
+        :param cams_files: The list of cams objects
+        :param prod_dates: The product dates
+        :param delta_t: The maximum time difference a CAMS file can be apart from the product date.
+        :return: The cams files available in the given time interval
+        """
+        cams_filtered = []
+        for prod_date in prod_dates:
+            t_min, t_max = prod_date - delta_t, prod_date + delta_t
+            for cams in cams_files:
+                date = cams.get_date()
+                if t_min <= date <= t_max:
+                    cams_filtered.append(cams)
+        return cams_filtered
+
+    @staticmethod
+    def hash_dirname(name):
         """
         Create a hash of the product name in order to have a unique folder name
         :param name: The product basename
@@ -200,12 +238,11 @@ class Nominal(Workplan):
         Get the list of available l2 products
         :return: The list of l2 products currently available that are after the given l1 date
         """
-        from Start_maja import StartMaja
         # Find the previous L2 product
-        avail_input_l2 = StartMaja.get_available_products(self.outdir, "l2a", self.tile)
+        avail_input_l2 = self.get_available_products(self.outdir, "l2a", self.tile)
         # Get only products which are close to the desired l2 date and before the l1 date:
         l2_prods = [prod for prod in avail_input_l2
-                    if abs(prod.date - self.l2_date) < StartMaja.max_l2_diff and
+                    if abs(prod.date - self.l2_date) < self.max_l2_diff and
                     prod.date < self.date and prod.validity]
         return l2_prods
 
@@ -229,7 +266,6 @@ class Nominal(Workplan):
         :return: The return code of the Maja app
         """
         from Common.FileSystem import remove_directory
-        from Start_maja import StartMaja
         self.create_working_dir(dtm, gipp)
         l2_prods = self._get_available_l2_products()
         if not l2_prods:
@@ -238,7 +274,7 @@ class Nominal(Workplan):
                 logging.info("Setting up a BACKWARD execution instead.")
                 l1_list = self.remaining_l1[:self.nbackward]
                 cams_dates = [prod.date for prod in l1_list + [self.l1]]
-                cams_files = StartMaja.filter_cams_by_products(self.remaining_cams, cams_dates)
+                cams_files = self.filter_cams_by_products(self.remaining_cams, cams_dates)
                 backup_wp = Backward(self.root, self.outdir, self.l1, l1_list=l1_list,
                                      log_level=self.log_level, cams=self.aux_files + cams_files)
             else:

@@ -17,9 +17,8 @@ import logging
 from os import path as p
 from datetime import timedelta
 
-from Chain import Product
 from Common import FileSystem
-from Chain import AuxFile, GippFile
+from Chain import AuxFile, GippFile, Workplan
 
 
 class StartMaja(object):
@@ -30,7 +29,6 @@ class StartMaja(object):
     date_regex = r"\d{4}-\d{2}-\d{2}"  # YYYY-MM-DD
     current_dir = p.dirname(p.realpath(__file__))
     max_product_difference = timedelta(hours=6)
-    max_l2_diff = timedelta(days=14)
 
     def __init__(self, folder, tile, site, start, end, verbose=False, **kwargs):
         """
@@ -260,7 +258,7 @@ class StartMaja(object):
         if not p.isdir(self.path_input_l2):
             self.logger.warning("L2 folder for %s not existing: %s" % (self.__site_info, self.path_input_l1))
 
-        avail_input_l1 = sorted(self.get_available_products(self.path_input_l1, level="L1C", tile=self.tile))
+        avail_input_l1 = sorted(Workplan.get_available_products(self.path_input_l1, level="L1C", tile=self.tile))
 
         if not avail_input_l1:
             raise IOError("No L1C products detected for %s in %s" % (self.__site_info, self.path_input_l1))
@@ -268,7 +266,7 @@ class StartMaja(object):
             self.logger.info("%s L1C product(s) detected for %s in %s" % (len(avail_input_l1),
                                                                           self.__site_info,
                                                                           self.path_input_l1))
-        avail_input_l2 = sorted(self.get_available_products(self.path_input_l2, level="L2A", tile=self.tile))
+        avail_input_l2 = sorted(Workplan.get_available_products(self.path_input_l2, level="L2A", tile=self.tile))
         if not avail_input_l2:
             self.logger.warning("No L2A products detected for %s in %s" % (self.__site_info, self.path_input_l2))
         else:
@@ -276,21 +274,6 @@ class StartMaja(object):
                                                                           self.__site_info,
                                                                           self.path_input_l2))
         return avail_input_l1, avail_input_l2
-
-    @staticmethod
-    def get_available_products(root, level, tile):
-        """
-        Parse the products from the constructed L1- or L2- directories
-        :param root: The root folder to be searched from
-        :param level: The product level to be search for
-        :param tile: The tileID
-        :return: A list of MajaProducts available in the given directory
-        """
-        avail_folders = [p.join(root, f) for f in os.listdir(root)]
-        avail_products = [Product.MajaProduct(f).factory() for f in avail_folders if p.isdir(f)]
-        # Remove the ones that didn't work:
-        avail_products = [prod for prod in avail_products if prod is not None]
-        return [prod for prod in avail_products if prod.level == level.lower() and prod.tile == tile]
 
     def get_dtm(self):
         """
@@ -325,24 +308,6 @@ class StartMaja(object):
         cams = [AuxFile.CAMSFile(c) for c in cams_folders]
         cams = [c for c in cams if c is not None]
         return cams
-
-    @staticmethod
-    def filter_cams_by_products(cams_files, prod_dates, delta_t=timedelta(hours=12)):
-        """
-        Get all CAMS files that are between the given prod_dates +- delta_t
-        :param cams_files: The list of cams objects
-        :param prod_dates: The product dates
-        :param delta_t: The maximum time difference a CAMS file can be apart from the product date.
-        :return: The cams files available in the given time interval
-        """
-        cams_filtered = []
-        for prod_date in prod_dates:
-            t_min, t_max = prod_date - delta_t, prod_date + delta_t
-            for cams in cams_files:
-                date = cams.get_date()
-                if t_min <= date <= t_max:
-                    cams_filtered.append(cams)
-        return cams_filtered
 
     def create_workplans(self, max_product_difference=timedelta(hours=6), max_l2_diff=timedelta(days=14)):
         """
@@ -389,8 +354,8 @@ class StartMaja(object):
                                                   l1=used_prod_l1[0],
                                                   l2_date=used_prod_l1[0].date,
                                                   log_level=self.maja_log_level,
-                                                  cams=self.filter_cams_by_products(self.cams_files,
-                                                                                    [used_prod_l1[0].date])
+                                                  cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                                        [used_prod_l1[0].date])
                                                   ))
                 pass
             else:
@@ -404,9 +369,9 @@ class StartMaja(object):
                                                        l1=l1,
                                                        l1_list=l1_list,
                                                        log_level=self.maja_log_level,
-                                                       cams=self.filter_cams_by_products(self.cams_files,
-                                                                                         [prod.date for prod in
-                                                                                          [l1] + l1_list])
+                                                       cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                                             [prod.date for prod in
+                                                                                              [l1] + l1_list])
                                                        ))
                     pass
                 else:
@@ -416,8 +381,8 @@ class StartMaja(object):
                                                    outdir=self.path_input_l2,
                                                    l1=used_prod_l1[0],
                                                    log_level=self.maja_log_level,
-                                                   cams=self.filter_cams_by_products(self.cams_files,
-                                                                                     [used_prod_l1[0].date])
+                                                   cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                                         [used_prod_l1[0].date])
                                                    ))
                     pass
                 pass
@@ -445,9 +410,9 @@ class StartMaja(object):
                                                        l1=prod,
                                                        l1_list=l1_list,
                                                        log_level=self.maja_log_level,
-                                                       cams=self.filter_cams_by_products(self.cams_files,
-                                                                                         [prod.date for prod in
-                                                                                          [prod] + l1_list])
+                                                       cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                                             [prod.date for prod in
+                                                                                              [prod] + l1_list])
                                                        ))
                     pass
                 else:
@@ -457,8 +422,8 @@ class StartMaja(object):
                                                    outdir=self.path_input_l2,
                                                    l1=prod,
                                                    log_level=self.maja_log_level,
-                                                   cams=self.filter_cams_by_products(self.cams_files,
-                                                                                     [prod.date])
+                                                   cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                                         [prod.date])
                                                    ))
                     pass
                 pass
@@ -468,7 +433,7 @@ class StartMaja(object):
                                                   l1=prod,
                                                   l2_date=prod.date,
                                                   log_level=self.maja_log_level,
-                                                  cams=self.filter_cams_by_products(self.cams_files, [prod.date]),
+                                                  cams=Workplan.filter_cams_by_products(self.cams_files, [prod.date]),
                                                   # Fallback parameters:
                                                   remaining_l1=used_prod_l1[(i + 1):],
                                                   nbackward=self.nbackward,
@@ -503,7 +468,7 @@ class StartMaja(object):
             self.gipp.download()
             self.logger.info("GIPP Creation succeeded.")
 
-        workplans = self.create_workplans(self.max_product_difference, self.max_l2_diff)
+        workplans = self.create_workplans(self.max_product_difference, Workplan.max_l2_diff)
         self.logger.info("%s workplan(s) successfully created:" % len(workplans))
         # Print without the logging-formatting:
         print(str("%19s | %5s | %8s | %70s | %15s" % ("DATE", "TILE", "MODE", "L1-PRODUCT", "ADDITIONAL INFO")))

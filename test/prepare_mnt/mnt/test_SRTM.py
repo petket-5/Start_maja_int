@@ -187,6 +187,7 @@ class TestSRTM(unittest.TestCase):
                                                      "val": "30 -30"}])
         self.assertTrue(os.path.exists(hdr))
         self.assertTrue(os.path.isdir(dbl))
+        FileSystem.remove_directory(dem_dir)
 
     def test_srtm_get_maja_format_s2_31tcj(self):
         import os
@@ -208,6 +209,7 @@ class TestSRTM(unittest.TestCase):
                                                      "val": "20 -20"}])
         self.assertTrue(os.path.exists(hdr))
         self.assertTrue(os.path.isdir(dbl))
+        FileSystem.remove_directory(dem_dir)
 
 
 if __name__ == '__main__':

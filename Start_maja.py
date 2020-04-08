@@ -82,6 +82,8 @@ class StartMaja(object):
                 pass
             else:
                 raise IOError("Cannot mix multiple plugin types: %s" % ptype)
+        elif ptype == ["natif"]:
+            self.ptype = "tm"
         else:
             self.ptype = ptype[0]
 
@@ -501,7 +503,7 @@ class StartMaja(object):
         if not self.gipp.check_completeness():
             self.logger.debug("Attempting to download Gipp for %s" % self.gipp.gipp_folder_name)
             self.gipp.download()
-            self.logger.info("GIPP Creation succeeded.")
+        self.logger.info("GIPP Creation succeeded for %s" % self.gipp.gipp_folder_name)
 
         workplans = self.create_workplans(self.max_product_difference, self.max_l2_diff)
         self.logger.info("%s workplan(s) successfully created:" % len(workplans))

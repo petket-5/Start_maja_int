@@ -16,9 +16,10 @@ import re
 import logging
 from os import path as p
 from datetime import timedelta
-
 from Common import FileSystem
-from Chain import AuxFile, GippFile, Workplan
+from Common import DateConverter
+from Chain import AuxFile, GippFile, Product
+from Chain.Workplan import Workplan, Nominal, Backward, Init
 
 
 class StartMaja(object):
@@ -35,7 +36,6 @@ class StartMaja(object):
         Init the instance using the old start_maja parameters
         Optional params: nbackward, overwrite, verbose, cams, skip_confirm, fixed_platform
         """
-        from Common import DateConverter
         self.verbose = verbose
         logging_level = logging.DEBUG if self.verbose else logging.INFO
         self.logger = self.__init_loggers(msg_level=logging_level)
@@ -61,7 +61,7 @@ class StartMaja(object):
         self.path_input_l1, self.path_input_l2, self.__site_info = self.__set_input_paths()
         self.logger.debug("Found %s" % self.__site_info)
         self.logger.debug("Detecting input products...")
-        self.avail_input_l1, self.avail_input_l2 = self.__get_all_availables_products()
+        self.avail_input_l1, self.avail_input_l2 = self.__get_all_available_products()
 
         if not kwargs.get("platform"):
             platform = list(set([prod.platform for prod in self.avail_input_l1 + self.avail_input_l2]))
@@ -80,6 +80,8 @@ class StartMaja(object):
                 pass
             else:
                 raise IOError("Cannot mix multiple plugin types: %s" % ptype)
+        elif ptype == ["natif"]:
+            self.ptype = "tm"
         else:
             self.ptype = ptype[0]
 
@@ -182,7 +184,6 @@ class StartMaja(object):
         :param cfg_file: The path to the file
         :return: The parsed paths for each of the directories. None for the optional ones if not given.
         """
-        from Common.FileSystem import create_directory
         import configparser as cfg
         # Parsing configuration file
         config = cfg.ConfigParser()
@@ -191,17 +192,17 @@ class StartMaja(object):
         # get cfg parameters
         rep_work = os.path.realpath(os.path.expanduser(config.get("PATH", "repWork")))
         if not p.isdir(rep_work):
-            create_directory(rep_work)
+            FileSystem.create_directory(rep_work)
         rep_gipp = os.path.realpath(os.path.expanduser(config.get("PATH", "repGipp")))
         if not p.isdir(rep_gipp):
-            create_directory(rep_gipp)
+            FileSystem.create_directory(rep_gipp)
         rep_l1 = self.__read_config_param(config, "PATH", "repL1")
         rep_l2 = os.path.realpath(os.path.expanduser(config.get("PATH", "repL2")))
         if not p.isdir(rep_l2):
-            create_directory(rep_l2)
+            FileSystem.create_directory(rep_l2)
         rep_mnt = os.path.realpath(os.path.expanduser(config.get("PATH", "repMNT")))
         if not p.isdir(rep_mnt):
-            create_directory(rep_mnt)
+            FileSystem.create_directory(rep_mnt)
         exe_maja = self.__read_config_param(config, "PATH", "exeMaja")
 
         # CAMS is optional:
@@ -246,7 +247,7 @@ class StartMaja(object):
 
         return path_input_l1, path_input_l2, site_info
 
-    def __get_all_availables_products(self):
+    def __get_all_available_products(self):
         """
         Set the input folders for L1- and L2- products
         :return: The available L1 and L2 products in the given folders.
@@ -284,7 +285,6 @@ class StartMaja(object):
         has to be found. OSError is thrown otherwise.
         :return: The full path to the hdr and dbl.dir. Throws OSError if they're not found.
         """
-        from Common import FileSystem
         regex = AuxFile.DTMFile.get_specifiable_regex() + r"T?" + self.tile + r"\w+.DBL.DIR"
         try:
             mnt_folders = FileSystem.find(regex, self.rep_mnt)
@@ -303,13 +303,12 @@ class StartMaja(object):
         For each CAMS a single .HDR file and an associated .DBL.DIR/.DBL file
         has to be found. Otherwise it gets discarded
         """
-        from Common import FileSystem
         cams_folders = FileSystem.find(AuxFile.CAMSFile.regex, self.rep_cams)
         cams = [AuxFile.CAMSFile(c) for c in cams_folders]
         cams = [c for c in cams if c is not None]
         return cams
 
-    def create_workplans(self, max_product_difference=timedelta(hours=6), max_l2_diff=timedelta(days=14)):
+    def create_workplans(self, max_product_difference):
         """
         Create a workplan for each Level-1 product found between the given date period
         For the first product available, check on top if an L2 product from the date
@@ -320,11 +319,8 @@ class StartMaja(object):
         in NOMINAL
         :param max_product_difference: Maximum time difference that the same L1 and L2 products date can be apart.
         This is necessary due to the fact that the acquisition date can vary in between platforms.
-        :param max_l2_diff: Maximum time difference a separate L2 product can be apart from an L1 following it.
         :return: List of workplans to be executed
         """
-        from Chain import Workplan
-
         # Get actually usable L1 products:
         used_prod_l1 = [prod for prod in self.avail_input_l1
                         if self.start <= prod.date <= self.end]
@@ -344,19 +340,22 @@ class StartMaja(object):
         # Process the first product separately:
         if used_prod_l1[0] not in has_l2 or self.overwrite:
             # Check if there is a recent L2 available for a nominal workplan
-            min_time = used_prod_l1[0].date - max_l2_diff
+            if used_prod_l1[0].date.date() < Workplan.l2_diff_switch_date.date():
+                min_time = used_prod_l1[0].date - Workplan.max_l2_diff_s2a_only
+            else:
+                min_time = used_prod_l1[0].date - Workplan.max_l2_diff_s2_combined
             max_time = used_prod_l1[0].date
             has_closest_l2_prod = [prod for prod in self.avail_input_l2 if min_time <= prod.date <= max_time]
             if has_closest_l2_prod:
                 # Proceed with NOMINAL
-                workplans.append(Workplan.Nominal(wdir=self.rep_work,
-                                                  outdir=self.path_input_l2,
-                                                  l1=used_prod_l1[0],
-                                                  l2_date=used_prod_l1[0].date,
-                                                  log_level=self.maja_log_level,
-                                                  cams=Workplan.filter_cams_by_products(self.cams_files,
-                                                                                        [used_prod_l1[0].date])
-                                                  ))
+                workplans.append(Nominal(wdir=self.rep_work,
+                                         outdir=self.path_input_l2,
+                                         l1=used_prod_l1[0],
+                                         l2_date=used_prod_l1[0].date,
+                                         log_level=self.maja_log_level,
+                                         cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                               [used_prod_l1[0].date])
+                                         ))
                 pass
             else:
                 if len(self.avail_input_l1) >= self.nbackward:
@@ -364,26 +363,26 @@ class StartMaja(object):
                     index_current_prod = self.avail_input_l1.index(used_prod_l1[0])
                     l1_list = self.avail_input_l1[index_current_prod:index_current_prod + self.nbackward]
                     l1 = used_prod_l1[0]
-                    workplans.append(Workplan.Backward(wdir=self.rep_work,
-                                                       outdir=self.path_input_l2,
-                                                       l1=l1,
-                                                       l1_list=l1_list,
-                                                       log_level=self.maja_log_level,
-                                                       cams=Workplan.filter_cams_by_products(self.cams_files,
-                                                                                             [prod.date for prod in
-                                                                                              [l1] + l1_list])
-                                                       ))
+                    workplans.append(Backward(wdir=self.rep_work,
+                                              outdir=self.path_input_l2,
+                                              l1=l1,
+                                              l1_list=l1_list,
+                                              log_level=self.maja_log_level,
+                                              cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                                    [prod.date for prod in
+                                                                                     [l1] + l1_list])
+                                              ))
                     pass
                 else:
                     # Proceed with INIT
                     self.logger.info("Not enough L1 products available for a BACKWARD mode. Beginning with INIT...")
-                    workplans.append(Workplan.Init(wdir=self.rep_work,
-                                                   outdir=self.path_input_l2,
-                                                   l1=used_prod_l1[0],
-                                                   log_level=self.maja_log_level,
-                                                   cams=Workplan.filter_cams_by_products(self.cams_files,
-                                                                                         [used_prod_l1[0].date])
-                                                   ))
+                    workplans.append(Init(wdir=self.rep_work,
+                                          outdir=self.path_input_l2,
+                                          l1=used_prod_l1[0],
+                                          log_level=self.maja_log_level,
+                                          cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                                [used_prod_l1[0].date])
+                                          ))
                     pass
                 pass
         else:
@@ -398,6 +397,10 @@ class StartMaja(object):
                 continue
             # Note: i, in this case is the previous product -> Not the current one, which is i+1
             date_gap = prod.date - used_prod_l1[i].date
+            if prod.date.date() < Workplan.l2_diff_switch_date.date():
+                max_l2_diff = Workplan.max_l2_diff_s2a_only
+            else:
+                max_l2_diff = Workplan.max_l2_diff_s2_combined
             if date_gap >= max_l2_diff:
                 self.logger.info("Will not continue time-series. Date gap too large between products %s vs. %s" %
                                  (prod.date, used_prod_l1[i].date))
@@ -405,40 +408,40 @@ class StartMaja(object):
                 if len(self.avail_input_l1[index_current_prod:]) >= self.nbackward:
                     # Proceed with BACKWARD
                     l1_list = self.avail_input_l1[index_current_prod:index_current_prod + 1 + self.nbackward]
-                    workplans.append(Workplan.Backward(wdir=self.rep_work,
-                                                       outdir=self.path_input_l2,
-                                                       l1=prod,
-                                                       l1_list=l1_list,
-                                                       log_level=self.maja_log_level,
-                                                       cams=Workplan.filter_cams_by_products(self.cams_files,
-                                                                                             [prod.date for prod in
-                                                                                              [prod] + l1_list])
-                                                       ))
+                    workplans.append(Backward(wdir=self.rep_work,
+                                              outdir=self.path_input_l2,
+                                              l1=prod,
+                                              l1_list=l1_list,
+                                              log_level=self.maja_log_level,
+                                              cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                                    [prod.date for prod in
+                                                                                     [prod] + l1_list])
+                                              ))
                     pass
                 else:
                     # Proceed with INIT
                     self.logger.info("Not enough L1 products available for a BACKWARD mode. Continuing with INIT...")
-                    workplans.append(Workplan.Init(wdir=self.rep_work,
-                                                   outdir=self.path_input_l2,
-                                                   l1=prod,
-                                                   log_level=self.maja_log_level,
-                                                   cams=Workplan.filter_cams_by_products(self.cams_files,
-                                                                                         [prod.date])
-                                                   ))
+                    workplans.append(Init(wdir=self.rep_work,
+                                          outdir=self.path_input_l2,
+                                          l1=prod,
+                                          log_level=self.maja_log_level,
+                                          cams=Workplan.filter_cams_by_products(self.cams_files,
+                                                                                [prod.date])
+                                          ))
                     pass
                 pass
             else:
-                workplans.append(Workplan.Nominal(wdir=self.rep_work,
-                                                  outdir=self.path_input_l2,
-                                                  l1=prod,
-                                                  l2_date=prod.date,
-                                                  log_level=self.maja_log_level,
-                                                  cams=Workplan.filter_cams_by_products(self.cams_files, [prod.date]),
-                                                  # Fallback parameters:
-                                                  remaining_l1=used_prod_l1[(i + 1):],
-                                                  nbackward=self.nbackward,
-                                                  remaining_cams=self.cams_files
-                                                  ))
+                workplans.append(Nominal(wdir=self.rep_work,
+                                         outdir=self.path_input_l2,
+                                         l1=prod,
+                                         l2_date=prod.date,
+                                         log_level=self.maja_log_level,
+                                         cams=Workplan.filter_cams_by_products(self.cams_files, [prod.date]),
+                                         # Fallback parameters:
+                                         remaining_l1=used_prod_l1[(i + 1):],
+                                         nbackward=self.nbackward,
+                                         remaining_cams=self.cams_files
+                                         ))
 
         # This should never happen:
         if not workplans:
@@ -466,9 +469,9 @@ class StartMaja(object):
         if not self.gipp.check_completeness():
             self.logger.debug("Attempting to download Gipp for %s" % self.gipp.gipp_folder_name)
             self.gipp.download()
-            self.logger.info("GIPP Creation succeeded.")
+        self.logger.info("GIPP Creation succeeded for %s" % self.gipp.gipp_folder_name)
 
-        workplans = self.create_workplans(self.max_product_difference, Workplan.max_l2_diff)
+        workplans = self.create_workplans(self.max_product_difference)
         self.logger.info("%s workplan(s) successfully created:" % len(workplans))
         # Print without the logging-formatting:
         print(str("%19s | %5s | %8s | %70s | %15s" % ("DATE", "TILE", "MODE", "L1-PRODUCT", "ADDITIONAL INFO")))
@@ -488,7 +491,6 @@ if __name__ == "__main__":
     if not sys.version_info >= (3, 5):
         raise AssertionError("Start_maja needs python >= 3.5.\n"
                              "Run 'python --version' for more info.")
-
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--tile", help="Tile number",

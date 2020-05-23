@@ -5,8 +5,7 @@ Copyright (C) CNES, CS-SI, CESBIO - All Rights Reserved
 This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
-Author:         Peter KETTIG <peter.kettig@cnes.fr>,
-Project:        Start-MAJA, CNES
+Author:         Peter KETTIG <peter.kettig@cnes.fr>
 """
 
 import unittest
@@ -18,7 +17,9 @@ import os
 
 class TestS2Product(unittest.TestCase):
     prod_s2_nat = ["S2A_MSIL1C_20170412T110621_N0204_R137_T29RPQ_20170412T111708.SAFE",
-                   "S2B_MSIL1C_20180316T103021_N0206_R108_T32TMR_20180316T123927.SAFE"]
+                   "S2B_MSIL1C_20180316T103021_N0206_R108_T32TMR_20180316T123927.SAFE",
+                   "S2A_MSIL2A_20160814T002112_N9999_R116_T55HBC_20191126T111846.SAFE",
+                   "S2A_MSIL2A_20160926T003552_N9999_R016_T55HBD_20191125T111300.SAFE"]
     prod_s2_prd = ["S2A_OPER_PRD_MSIL1C_PDMC_20161109T171237_R135_V20160924T074932_20160924T081448.SAFE"]
     prod_s2_ssc = ["S2A_OPER_SSC_L2VALD_36JTT____20160914.DBL.DIR",
                    "S2B_OPER_SSC_L1VALD_21MXT____20180925.DBL.DIR"]
@@ -73,11 +74,12 @@ class TestS2Product(unittest.TestCase):
         dates = ["20171008T105012", "20161206T105012", "20190415T000000"]
         validity = [True, False, False]
         for prod, tile, date, level, valid in zip(self.prod_s2_mus, tiles, dates, levels, validity):
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertIsInstance(p, Sentinel2Muscate)
             self.assertEqual(p.level, level)
             self.assertEqual(p.platform, "sentinel2")
             self.assertEqual(p.type, "muscate")
+            self.assertEqual(p.nodata, -10000)
             self.assertEqual(p.tile, tile)
             self.assertEqual(p.date.strftime("%Y%m%dT%H%M%S"), date)
             self.assertTrue(os.path.basename(p.metadata_file).endswith("_MTD_ALL.xml"))
@@ -94,16 +96,17 @@ class TestS2Product(unittest.TestCase):
 
         # Other prods:
         for prod in self.prod_s2_prd + self.prod_s2_ssc + self.prod_s2_nat + self.prods_other:
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertNotIsInstance(p, Sentinel2Muscate)
 
     def test_reg_s2_natif(self):
-        tiles = ["29RPQ", "32TMR"]
-        dates = ["20170412T110621", "20180316T103021"]
-        for prod, tile, date in zip(self.prod_s2_nat, tiles, dates):
-            p = MajaProduct(prod).factory()
+        tiles = ["29RPQ", "32TMR", "55HBC", "55HBD"]
+        dates = ["20170412T110621", "20180316T103021", "20160814T002112", "20160926T003552"]
+        levels = ["l1c", "l1c", "l2a", "l2a"]
+        for prod, tile, date, level in zip(self.prod_s2_nat, tiles, dates, levels):
+            p = MajaProduct.factory(prod)
             self.assertIsInstance(p, Sentinel2Natif)
-            self.assertEqual(p.level, "l1c")
+            self.assertEqual(p.level, level)
             self.assertEqual(p.platform, "sentinel2")
             self.assertEqual(p.type, "natif")
             self.assertEqual(p.tile, tile)
@@ -122,7 +125,7 @@ class TestS2Product(unittest.TestCase):
 
         # Other prods:
         for prod in self.prod_s2_prd + self.prod_s2_ssc + self.prod_s2_mus + self.prods_other:
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertNotIsInstance(p, Sentinel2Natif)
 
     def test_reg_s2_ssc(self):
@@ -131,7 +134,7 @@ class TestS2Product(unittest.TestCase):
         levels = ["l2a", "l1c"]
         validity = [True, True]
         for prod, tile, date, level, valid in zip(self.prod_s2_ssc, tiles, dates, levels, validity):
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertIsInstance(p, Sentinel2SSC)
             self.assertEqual(p.level, level)
             self.assertEqual(p.platform, "sentinel2")
@@ -152,7 +155,7 @@ class TestS2Product(unittest.TestCase):
 
         # Other prods:
         for prod in self.prod_s2_prd + self.prod_s2_nat + self.prod_s2_mus:
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertNotIsInstance(p, Sentinel2SSC)
 
     def test_reg_s2_prd(self):
@@ -161,4 +164,4 @@ class TestS2Product(unittest.TestCase):
         levels = ["l1c"]
         for prod, tile, date, level in zip(self.prod_s2_prd, tiles, dates, levels):
             # TODO Currently not supported
-            self.assertIsNone(MajaProduct(prod).factory())
+            self.assertIsNone(MajaProduct.factory(prod))

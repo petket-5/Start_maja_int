@@ -5,13 +5,14 @@ Copyright (C) CNES, CS-SI, CESBIO - All Rights Reserved
 This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
-Author:         Peter KETTIG <peter.kettig@cnes.fr>,
-Project:        Start-MAJA, CNES
+Author:         Peter KETTIG <peter.kettig@cnes.fr>
+Project:        Tabble, CNES
 """
 
 import unittest
-from Common import FileSystem, DummyFiles
+from Common import FileSystem
 from Chain.Workplan import Workplan, Init, Nominal, Backward
+from Chain import DummyFiles
 import os
 
 
@@ -87,7 +88,7 @@ class TestWorkplan(unittest.TestCase):
         self.assertTrue(os.path.isdir(self.outdir))
         self.assertEqual(wp.l1, self.l1)
         self.assertEqual(wp.l2_date, self.l2.date)
-        l2_prods = wp.get_available_products(root=self.wdir, level="l2a", tile="T11ABC")
+        l2_prods = wp._get_available_l2_products()
         # TODO Cannot check more because of misaligned dates and validity check. Need to add JPI to dummy-files
         self.assertEqual([], l2_prods)
 

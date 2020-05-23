@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Copyright (C) CNES, CS-SI, CESBIO - All Rights Reserved
+Copyright (C) CNES - All Rights Reserved
 This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
-Author:         Peter KETTIG <peter.kettig@cnes.fr>,
-Project:        Start-MAJA, CNES
+Author:         Peter KETTIG <peter.kettig@cnes.fr>
 """
 
 from __future__ import print_function
@@ -59,88 +58,58 @@ def remove_directory(directory):
         log.debug("Cannot remove directory {0}".format(directory))
 
 
-def __get_item(path, reg):
+def find(pattern, path, case_sensitive=False, depth=None, ftype="all"):
     """
-    Find a specific file/folder within a directory
-    :param path: The full path to the directory
-    :param reg: The regex to be searched for
-    :return: The full path to the file/folder
-    """
-    import re
-    import os
-    path = os.path.abspath(path)
-    available_dirs = [f for f in os.listdir(path) if re.search(reg.lower(), f.lower())]
-    if not available_dirs:
-        raise IOError("Cannot find %s in %s" % (reg, path))
-    return os.path.abspath(os.path.join(path, available_dirs[0]))
+    Find a file or dir in a directory-tree of given depth.
 
-
-def find(pattern, path, case_sensitive=False):
-    """
-    Find a file or dir in a directory-tree.
     :param pattern: The filename to be searched for
     :param path: The path to the root directory
-    :param case_sensitive: Do a case sensitive comparison.
+    :param case_sensitive: Do a case sensitive comparison. Default is False.
+    :param depth: Search only up to a specified depth. Default is None, signifying a maximum limit of 20.
+    :param ftype: Can be "file", "folder" or "all".
     :return: The file/directory if found. AssertionError if not.
     """
     import re
     result = []
-    parameter = pattern.replace("*", ".*")
+
+    reg_to_find = pattern.replace("*", ".*")
+
     if not case_sensitive:
-        parameter = parameter.lower()
+        reg_to_find = reg_to_find.lower()
+
+    path = os.path.abspath(path)
+    if not depth:
+        depth = 20  # Limit depth in case it is not specified.
     for root, dirs, files in os.walk(path):
-        for name in files + dirs:
-            if re.search(parameter.lower(), name if case_sensitive else name.lower()):
-                result.append(os.path.join(root, name))
+        if root[len(path):].count(os.sep) < depth:
+            if ftype == "all":
+                names = files + dirs
+            elif ftype == "file":
+                names = files
+            elif ftype == "folder":
+                names = dirs
+            else:
+                raise ValueError("Unknown type %s" % ftype)
+            for name in names:
+                if re.search(reg_to_find, name if case_sensitive else name.lower()):
+                    result.append(os.path.join(root, name))
     if not result:
-        raise ValueError("Cannot find %s in %s" % (parameter, path))
+        raise ValueError("Cannot find %s in %s" % (pattern, path))
     return result
 
 
-def find_single(pattern, path, case_sensitive=False):
+def find_single(pattern, path, case_sensitive=False, depth=None, ftype="all"):
     """
-    Find a file or dir in a directory-tree.
+    Find a single file or dir in a directory-tree.
+
     :param pattern: The filename to be searched for
     :param path: The path to the root directory
     :param case_sensitive: Do a case sensitive comparison.
-    :return: The file/directory if found. AssertionError if not.
+    :param depth: Search only up to a specified depth. Default is None, signifying a maximum limit of 20.
+    :param ftype: Can be "file", "folder" or "all".
+    :return: The file/directory if found. ValueError if not.
     """
-    return find(pattern, path, case_sensitive)[0]
-
-
-def get_file(**kwargs):
-    """
-    Get a single file from inside the root directory by glob or regex.
-    The necessary arguments:
-    - root: The root folder to start the search from.
-    The file can have one or multiple of the following characteristics:
-    - folders: Inside a (sub-)folder
-    - filename: Filename with specific pattern
-    :param kwargs: The folders and filename arguments
-    :return: The full path to the file if found or OSError if not.
-    """
-    import os
-
-    search_folder = kwargs["root"]
-    # The function supports globbing, so replace the globs for regex-like ones
-    folders = kwargs.get("folders", ".")
-    parameter = os.path.normpath(folders).replace("*", ".*")
-    subdirs = parameter.split(os.sep)
-    # Recursively update the search folder for each sub folder
-    for sub in subdirs:
-        if sub == ".":
-            continue
-        if sub == "..":
-            search_folder = os.path.dirname(search_folder)
-            continue
-        search_folder = __get_item(search_folder, sub)
-    # Now that we are in the right directory, search for the file:
-    try:
-        filename = kwargs["filename"]
-    except KeyError:
-        return search_folder
-    parameter = os.path.normpath(filename).replace("*", ".*")
-    return __get_item(search_folder, parameter)
+    return find(pattern, path, case_sensitive=case_sensitive, depth=depth, ftype=ftype)[0]
 
 
 def symlink(src, dst):
@@ -235,7 +204,7 @@ def download_file(url, filepath, log_level=logging.DEBUG):
     import shutil
     tmp_file = tempfile.mktemp()
     args = ["--retry-connrefused", "--waitretry=1",
-            "--read-timeout=20", "--timeout=15", "--tries=3",
+            "--read-timeout=20", "--timeout=15",
             "-O", tmp_file, url]
     if log_level != logging.DEBUG:
         args.append("-nv")

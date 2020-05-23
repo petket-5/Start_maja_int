@@ -5,8 +5,7 @@ Copyright (C) CNES, CS-SI, CESBIO - All Rights Reserved
 This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
-Author:         Peter KETTIG <peter.kettig@cnes.fr>,
-Project:        Start-MAJA, CNES
+Author:         Peter KETTIG <peter.kettig@cnes.fr>
 """
 
 import unittest
@@ -74,9 +73,10 @@ class TestL8Product(unittest.TestCase):
         dates = ["20170501T103532", "20170501T103532"]
         validity = [True, False]
         for prod, tile, date, level, valid in zip(self.prod_l8_mus, tiles, dates, levels, validity):
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertIsInstance(p, Landsat8Muscate)
             self.assertEqual(p.level, level)
+            self.assertEqual(p.nodata, 0)
             self.assertEqual(p.platform, "landsat8")
             self.assertEqual(p.type, "muscate")
             self.assertEqual(p.tile, tile)
@@ -94,16 +94,17 @@ class TestL8Product(unittest.TestCase):
 
         # Other prods:
         for prod in self.prod_l8_lc1 + self.prod_l8_lc2 + self.prod_l8_nat + self.prods_other:
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertNotIsInstance(p, Landsat8Muscate)
 
     def test_reg_l8_natif(self):
         tiles = ["198030"]
         dates = ["20130626T120000"]
         for prod, tile, date in zip(self.prod_l8_nat, tiles, dates):
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertIsInstance(p, Landsat8Natif)
             self.assertEqual(p.level, "l1c")
+            self.assertEqual(p.nodata, 0)
             self.assertEqual(p.platform, "landsat8")
             self.assertEqual(p.type, "natif")
             self.assertEqual(p.tile, tile)
@@ -121,7 +122,7 @@ class TestL8Product(unittest.TestCase):
 
         # Other prods:
         for prod in self.prod_l8_lc2 + self.prod_l8_lc1 + self.prod_l8_mus + self.prods_other:
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertNotIsInstance(p, Landsat8Natif)
 
     def test_reg_l8_lc1(self):
@@ -129,9 +130,10 @@ class TestL8Product(unittest.TestCase):
         dates = ["20130107T120000"]
         levels = ["l1c"]
         for prod, tile, date, level in zip(self.prod_l8_lc1, tiles, dates, levels):
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertIsInstance(p, Landsat8LC1)
             self.assertEqual(p.level, level)
+            self.assertEqual(p.nodata, 0)
             self.assertEqual(p.platform, "landsat8")
             self.assertEqual(p.type, "natif")
             self.assertEqual(p.tile, tile)
@@ -149,7 +151,7 @@ class TestL8Product(unittest.TestCase):
 
         # Other prods:
         for prod in self.prod_l8_lc2 + self.prod_l8_nat + self.prod_l8_mus + self.prods_other:
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertNotIsInstance(p, Landsat8LC1)
 
     def test_reg_l8_lc2(self):
@@ -157,12 +159,13 @@ class TestL8Product(unittest.TestCase):
         dates = ["20170527T120000"]
         levels = ["l1c"]
         for prod, tile, date, level in zip(self.prod_l8_lc2, tiles, dates, levels):
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertIsInstance(p, Landsat8LC2)
             self.assertEqual(p.level, level)
             self.assertEqual(p.platform, "landsat8")
             self.assertEqual(p.type, "natif")
             self.assertEqual(p.tile, tile)
+            self.assertEqual(p.nodata, 0)
             self.assertEqual(p.date.strftime("%Y%m%dT%H%M%S"), date)
             self.assertEqual(os.path.basename(p.metadata_file), prod.split(".")[0] + "_MTL.txt")
             self.assertTrue(os.path.exists(p.metadata_file))
@@ -177,7 +180,7 @@ class TestL8Product(unittest.TestCase):
 
         # Other prods:
         for prod in self.prod_l8_lc1 + self.prod_l8_nat + self.prod_l8_mus + self.prods_other:
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertNotIsInstance(p, Landsat8LC2)
 
 

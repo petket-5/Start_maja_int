@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Copyright (C) CNES, CS-SI, CESBIO - All Rights Reserved
+Copyright (C) CNES - All Rights Reserved
 This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
 Author:         Peter KETTIG <peter.kettig@cnes.fr>
-Project:        Start-MAJA, CNES
+Project:        Tabble, CNES
 """
 
 import os
@@ -42,7 +42,7 @@ class EarthExplorer(object):
         self.dbl = dbl
         self.base = os.path.basename(dbl).split(".")[0]
         # Find associated HDR
-        self.hdr = FileSystem.get_file(root=os.path.join(dbl, "../"), filename=self.base + ".HDR")
+        self.hdr = FileSystem.find_single(path=os.path.join(dbl, "../"), pattern=self.base + ".HDR")
         assert os.path.isfile(self.hdr)
 
     def __str__(self):
@@ -55,8 +55,8 @@ class EarthExplorer(object):
     @classmethod
     def get_specifiable_regex(cls):
         """
-        Return regex without '\w+' at the end in order to make it costumizable.
-        :return: The class regex without \w+
+        Return regex without r"\\w+" at the end in order to make it costumizable.
+        :return: The class regex without \\w+
         """
         return cls.regex[:-3]
 
@@ -77,7 +77,7 @@ class CAMSFile(EarthExplorer):
     """
     Stores a single CAMS file
     """
-    regex = r"(VE|S2_|L8)_(TEST|PROD|OPER)_EXO_CAMS_\d{8}T\d{6}_\d{8}T\d{6}.DBL(.DIR)?"
+    regex = r"(VE|S2_|L8)_(TEST|PROD)_EXO_CAMS_\d{8}T\d{6}_\d{8}T\d{6}.DBL(.DIR)?"
 
     @classmethod
     def check_regex(cls, dbl):

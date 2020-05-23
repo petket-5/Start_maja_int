@@ -6,12 +6,12 @@ This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
 Author:         Peter KETTIG <peter.kettig@cnes.fr>
-Project:        Start-MAJA, CNES
+Project:        Tabble, CNES
 """
 
 import os
 import logging
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 logger = logging.getLogger("root")
 
@@ -21,14 +21,8 @@ class Workplan(object):
     Stores all information about a single execution of Maja
     """
     mode = "INIT"
-
-    # Maximum timedelta before restarting the time-series
-    # In the period before S2A+B, this is set to 30days
-    max_l2_diff_s2a_only = timedelta(days=30)
-    # With both satellites, 14days
-    max_l2_diff_s2_combined = timedelta(days=14)
-    # The date at which to use one or the other timedelta (Everything after is considered S2A+B):
-    l2_diff_switch_date = datetime(year=2017, month=7, day=1)
+    # Maximum time difference between two products before restarting the time-series:
+    max_l2_diff = timedelta(days=14)
 
     def __init__(self, wdir, outdir, l1, log_level="INFO", **kwargs):
         supported_params = {
@@ -79,7 +73,7 @@ class Workplan(object):
         from Chain import Product
         import os
         avail_folders = [os.path.join(root, f) for f in os.listdir(root)]
-        avail_products = [Product.MajaProduct(f).factory() for f in avail_folders if os.path.isdir(f)]
+        avail_products = [Product.MajaProduct.factory(f) for f in avail_folders if os.path.isdir(f)]
         # Remove the ones that didn't work:
         avail_products = [prod for prod in avail_products if prod is not None]
         return [prod for prod in avail_products if prod.level == level.lower() and prod.tile == tile]
@@ -239,24 +233,18 @@ class Nominal(Workplan):
         self.remaining_cams = kwargs.get("remaining_cams", [])
         super(Nominal, self).__init__(wdir, outdir, l1, log_level, **kwargs)
 
-    def __get_closest_l2_products(self):
+    def _get_available_l2_products(self):
         """
         Get the list of available l2 products
         :return: The list of l2 products currently available that are after the given l1 date
         """
         # Find the previous L2 product
         avail_input_l2 = self.get_available_products(self.outdir, "l2a", self.tile)
-
         # Get only products which are close to the desired l2 date and before the l1 date:
-        closest_l2_prods = []
-        for prod in avail_input_l2:
-            if prod.date.date() < self.l2_diff_switch_date.date():
-                max_l2_diff = self.max_l2_diff_s2a_only
-            else:
-                max_l2_diff = self.max_l2_diff_s2_combined
-            if abs(prod.date - self.l2_date) < max_l2_diff and prod.validity is True:
-                closest_l2_prods.append(prod)
-        return closest_l2_prods
+        l2_prods = [prod for prod in avail_input_l2
+                    if abs(prod.date - self.l2_date) < self.max_l2_diff and
+                    prod.date < self.date and prod.validity]
+        return l2_prods
 
     @staticmethod
     def _get_l2_product(l2_prods):
@@ -279,7 +267,7 @@ class Nominal(Workplan):
         """
         from Common.FileSystem import remove_directory
         self.create_working_dir(dtm, gipp)
-        l2_prods = self.__get_closest_l2_products()
+        l2_prods = self._get_available_l2_products()
         if not l2_prods:
             logger.error("Cannot find previous L2 product for date %s in %s" % (self.date, self.outdir))
             if len(self.remaining_l1) >= self.nbackward:

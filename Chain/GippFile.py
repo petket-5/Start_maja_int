@@ -6,7 +6,7 @@ This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
 Author:         Peter KETTIG <peter.kettig@cnes.fr>
-Project:        Start-MAJA, CNES
+Project:        Tabble, CNES
 """
 
 import os
@@ -34,8 +34,8 @@ class GIPPFile(EarthExplorer):
         :param hdr: The full path to the HDR file
         :return:
         """
-        from Common import FileSystem
-        return FileSystem.get_single_xpath(hdr, "./Fixed_Header/Mission")
+        from Common import XMLTools
+        return XMLTools.get_single_xpath(hdr, "./Fixed_Header/Mission")
 
 
 class GippALBD(EarthExplorer):
@@ -146,11 +146,11 @@ class GippSet(object):
         FileSystem.download_file(self.url, self.gipp_archive, self.log_level)
         FileSystem.unzip(self.gipp_archive, self.temp_folder)
         gipp_maja_git = os.path.join(self.temp_folder, "gipp_maja.git")
-        platform_folder = FileSystem.get_file(root=gipp_maja_git, filename= "^" + self.gipp_folder_name + "$")
+        platform_folder = FileSystem.find_single(path=gipp_maja_git, pattern="^" + self.gipp_folder_name + "$")
         if not platform_folder:
             self.__clean_up()
             raise OSError("Cannot find any gipp folder for platform %s" % self.gipp_folder_name)
-        readme = FileSystem.get_file(filename="readme*", root=platform_folder)
+        readme = FileSystem.find_single(path=platform_folder, pattern="readme*")
         if not readme:
             self.__clean_up()
             raise OSError("Cannot find download-file for LUT-Download in %s" % platform_folder)
@@ -160,7 +160,7 @@ class GippSet(object):
             raise OSError("Cannot find url to download LUTs")
         FileSystem.download_file(lut_url, self.lut_archive, self.log_level)
         FileSystem.unzip(self.lut_archive, platform_folder)
-        lut_folder = FileSystem.get_file(root=platform_folder, filename="LUTs")
+        lut_folder = FileSystem.find_single(path=platform_folder, pattern="LUTs")
         if not lut_folder:
             self.__clean_up()
             raise OSError("Cannot find 'LUTs' folder in %s" % self.temp_folder)

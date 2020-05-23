@@ -5,12 +5,12 @@ Copyright (C) CNES - All Rights Reserved
 This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
-Author:         Peter KETTIG <peter.kettig@cnes.fr>, Pierre LASSALLE <pierre.lassalle@cnes.fr>
-Project:        StartMaja, CNES
-Created on:     Tue Sep 11 15:31:00 2018
+Author:         Peter KETTIG <peter.kettig@cnes.fr>
 """
 
-surface_water_url = "https://storage.googleapis.com/global-surface-water/downloads2/occurrence/occurrence_%s_v1_1.tif"
+from Common import ImageIO
+from Common.GDalDatasetWrapper import GDalDatasetWrapper
+from osgeo import osr, gdal
 
 
 class Site:
@@ -34,7 +34,6 @@ class Site:
         Get lat and lon min and max values
         :return: latmin, latmax, lonmin, lonmax of the current sites
         """
-        from Common import ImageIO
         ul_latlon = ImageIO.transform_point(self.ul, self.epsg, new_epsg=4326)
         lr_latlon = ImageIO.transform_point(self.lr, self.epsg, new_epsg=4326)
         return ul_latlon, lr_latlon
@@ -58,7 +57,6 @@ class Site:
         return str(self.res_x) + " " + str(self.res_y)
 
     def to_driver(self, path, n_bands=1):
-        from osgeo import osr, gdal
         # create the raster file
         dst_ds = gdal.GetDriverByName('GTiff').Create(path, self.py, self.px, n_bands, gdal.GDT_Byte)
         geotransform = (self.ul[1], self.res_x, 0, self.ul[0], 0, self.res_y)
@@ -79,12 +77,13 @@ class Site:
         - shape_index_x: Select the band index for the X-size
         :return: A site class given the infos from the raster.
         """
-        from Common import ImageIO
-        raster, driver = ImageIO.tiff_to_array(raster, array_only=False)
+        driver = GDalDatasetWrapper.from_file(raster)
         shape_index_y = kwargs.get("shape_index_y", 0)
         shape_index_x = kwargs.get("shape_index_x", 1)
-        ny, nx = raster.shape[shape_index_y], raster.shape[shape_index_x]
-        epsg = ImageIO.get_epsg(driver)
-        ul, lr = ImageIO.get_ul_lr(driver)
-        xmin, xres, skx, ymax, sky, yres = driver.GetGeoTransform()
+        ny, nx = driver.array.shape[shape_index_y], driver.array.shape[shape_index_x]
+        epsg = driver.epsg
+        ulx, uly, lrx, lry = driver.ul_lr
+        ul = (ulx, uly)
+        lr = (lrx, lry)
+        xmin, xres, skx, ymax, sky, yres = driver.geotransform
         return Site(name, epsg, ul=ul, lr=lr,  px=nx, py=ny, res_x=xres, res_y=yres)

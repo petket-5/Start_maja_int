@@ -5,37 +5,46 @@ Copyright (C) CNES - All Rights Reserved
 This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
-Author:         Peter KETTIG <peter.kettig@cnes.fr>, Pierre LASSALLE <pierre.lassalle@cnes.fr>
-Project:        StartMaja, CNES
-Created on:     Tue Sep 11 15:31:00 2018
+Author:         Peter KETTIG <peter.kettig@cnes.fr>
 """
 
 from prepare_mnt.mnt.MNTBase import MNT
+import os
+import logging
+import math
+from Common import FileSystem, ImageTools
 
 srtm_url = "http://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/%s.zip"
 
 
 class SRTM(MNT):
     """
-    Base class to get the necessary mnt for a given site.
+    Base class to get an SRTM DEM/MNT for a given site.
     """
 
     def __init__(self, site, **kwargs):
-        import math
+        """
+        Initialise an SRTM-type DEM.
+
+        :param site: The :class:`prepare_mnt.mnt.SiteInfo` struct containing the basic information.
+        :param kwargs: Forwarded parameters to :class:`prepare_mnt.mnt.MNTBase`
+        """
         super(SRTM, self).__init__(site, **kwargs)
         if math.fabs(self.site.ul_latlon[0]) > 60 or math.fabs(self.site.lr_latlon[0]) > 60:
             raise ValueError("Latitude over +-60deg - No SRTM data available!")
         self.srtm_codes = self.get_srtm_codes(self.site)
+        if not self.dem_version:
+            self.dem_version = 1001
 
     def get_raw_data(self):
         """
         Get the DEM raw-data from a given directory. If not existing, an attempt will be made to download
         it automatically.
-        :return:
+
+        :return: A list of filenames containing the raw DEM data.
+        :rtype: list of str
         """
-        import os
-        from Common import FileSystem
-        import logging
+
         filenames = []
         for code in self.srtm_codes:
             current_url = srtm_url % code
@@ -49,11 +58,11 @@ class SRTM(MNT):
 
     def prepare_mnt(self):
         """
-        Prepare the srtm and gsw files.
-        :return:
+        Prepare the srtm files.
+
+        :return: Path to the full resolution DEM file.gsw
+        :rtype: str
         """
-        import os
-        from Common import FileSystem, ImageIO
         # Find/Download SRTM archives:
         srtm_archives = self.get_raw_data()
         # Unzip the downloaded/found srtm zip files:
@@ -64,20 +73,22 @@ class SRTM(MNT):
             fn_unzipped = FileSystem.find_single(pattern=basename + ".tif", path=self.wdir)
             unzipped.append(fn_unzipped)
         # Fusion of all SRTM files
-        fusion_path = os.path.join(self.wdir, "srtm_combined.tif")
-        ImageIO.gdal_merge(fusion_path, *unzipped)
+        concat = ImageTools.gdal_buildvrt(*unzipped, vrtnodata=-32768)
         # Set nodata to 0
-        fixed_nodata = os.path.join(self.wdir, "fixed_nodata.tif")
-        ImageIO.gdal_warp(fixed_nodata, fusion_path,
-                          srcnodata=-32767,
-                          dstnodata=0)
+        nodata = ImageTools.gdal_warp(concat,
+                                      srcnodata=-32768,
+                                      dstnodata=0,
+                                      multi=True)
         # Combine to image of fixed extent
         srtm_full_res = os.path.join(self.wdir, "srtm_%sm.tif" % int(self.site.res_x))
-        ImageIO.gdal_warp(srtm_full_res, fixed_nodata,
-                          r="cubic",
-                          te=self.site.te_str,
-                          t_srs=self.site.epsg_str,
-                          tr=self.site.tr_str)
+        ImageTools.gdal_warp(nodata, dst=srtm_full_res,
+                             r="cubic",
+                             te=self.site.te_str,
+                             t_srs=self.site.epsg_str,
+                             tr=self.site.tr_str,
+                             dstnodata=0,
+                             srcnodata=0,
+                             multi=True)
         return srtm_full_res
 
     @staticmethod

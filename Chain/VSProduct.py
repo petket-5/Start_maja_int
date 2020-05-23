@@ -6,12 +6,15 @@ This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
 Author:         Peter KETTIG <peter.kettig@cnes.fr>
-Project:        Start-MAJA, CNES
 """
 
+import re
 import os
 from datetime import datetime, timedelta
 from Chain.Product import MajaProduct
+from Common.FileSystem import symlink
+from prepare_mnt.mnt.SiteInfo import Site
+from Common import FileSystem, XMLTools
 
 
 class VenusNatif(MajaProduct):
@@ -20,10 +23,15 @@ class VenusNatif(MajaProduct):
     """
 
     base_resolution = (5, -5)
+    coarse_resolution = (100, -100)
 
     @property
     def platform(self):
         return "venus"
+
+    @property
+    def short_name(self):
+        return "vs"
 
     @property
     def type(self):
@@ -38,8 +46,11 @@ class VenusNatif(MajaProduct):
         raise ValueError("Unknown product level for %s" % self.base)
 
     @property
+    def nodata(self):
+        return 0
+
+    @property
     def tile(self):
-        import re
         site_basic = self.base.split("_")[4]
         # Try this more refined method.
         # Helps to detect sites like "SUDOUE_5" which are split by another "_"
@@ -47,16 +58,16 @@ class VenusNatif(MajaProduct):
         site = re.search(site_reg, self.base)
         tile = re.search(self.reg_tile, site_basic)
         if site:
-            return site.group(1).rstrip("_")
+            return site.group(1)
         if tile:
-            return tile.group()[1:].rstrip("_")
+            return tile.group()[1:]
 
         return site_basic
 
     @property
     def metadata_file(self):
         metadata_filename = self.base.split(".")[0] + ".HDR"
-        return self.get_file(folders="../", filename=metadata_filename)
+        return self.find_file(path=os.path.join(self.fpath, ".."), pattern=metadata_filename)[0]
 
     @property
     def date(self):
@@ -70,16 +81,14 @@ class VenusNatif(MajaProduct):
         return False
 
     def link(self, link_dir):
-        from Common.FileSystem import symlink
         symlink(self.fpath, os.path.join(link_dir, self.base))
         mtd_file = self.metadata_file
         symlink(mtd_file, os.path.join(link_dir, os.path.basename(mtd_file)))
 
     @property
     def mnt_site(self):
-        from prepare_mnt.mnt.SiteInfo import Site
         try:
-            band_bx = self.get_file(filename=r"*IMG*DBL.TIF")
+            band_bx = self.find_file(r"*IMG*DBL.TIF")[0]
         except IOError as e:
             raise e
         return Site.from_raster(self.tile, band_bx, shape_index_y=1, shape_index_x=2)
@@ -99,10 +108,15 @@ class VenusMuscate(MajaProduct):
     """
 
     base_resolution = (5, -5)
+    coarse_resolution = (100, -100)
 
     @property
     def platform(self):
         return "venus"
+
+    @property
+    def short_name(self):
+        return "vns"
 
     @property
     def type(self):
@@ -119,12 +133,12 @@ class VenusMuscate(MajaProduct):
         raise ValueError("Unknown product level for %s" % self.base)
 
     @property
+    def nodata(self):
+        return -10000
+
+    @property
     def tile(self):
-        import re
-        if len(self.base.split("_")) == 7:
-            site = "_".join(self.base.split("_")[3:5])
-        else:
-            site = self.base.split("_")[3]
+        site = self.base.split("_")[3]
         tile = re.search(self.reg_tile, site)
         if tile:
             return tile.group()[1:]
@@ -132,7 +146,7 @@ class VenusMuscate(MajaProduct):
 
     @property
     def metadata_file(self):
-        return self.get_file(filename="*MTD_ALL.xml")
+        return self.find_file("*MTD_ALL.xml")[0]
 
     @property
     def date(self):
@@ -143,7 +157,6 @@ class VenusMuscate(MajaProduct):
 
     @property
     def validity(self):
-        from Common import FileSystem, XMLTools
         if self.level == "l1c" and os.path.exists(self.metadata_file):
             return True
         if self.level == "l2a":
@@ -159,14 +172,12 @@ class VenusMuscate(MajaProduct):
         return False
 
     def link(self, link_dir):
-        from Common.FileSystem import symlink
         symlink(self.fpath, os.path.join(link_dir, self.base))
 
     @property
     def mnt_site(self):
-        from prepare_mnt.mnt.SiteInfo import Site
         try:
-            band_bx = self.get_file(filename=r"*_B0?1*.tif")
+            band_bx = self.find_file(r"*_B0?1*.tif")[0]
         except IOError as e:
             raise e
         return Site.from_raster(self.tile, band_bx)

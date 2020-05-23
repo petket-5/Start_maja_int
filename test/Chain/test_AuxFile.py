@@ -5,14 +5,14 @@ Copyright (C) CNES, CS-SI, CESBIO - All Rights Reserved
 This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
-Author:         Peter KETTIG <peter.kettig@cnes.fr>,
-Project:        Start-MAJA, CNES
+Author:         Peter KETTIG <peter.kettig@cnes.fr>
+Project:        Tabble, CNES
 """
 
 import unittest
-from Common import TestFunctions
 from Chain.AuxFile import CAMSFile, DTMFile
 import os
+from Chain import DummyFiles
 from datetime import datetime
 
 
@@ -31,7 +31,6 @@ class TestAuxFile(unittest.TestCase):
         Similar to test_FileSystem.
         :return:
         """
-        from Common import DummyFiles
         os.makedirs(cls.cams_dir)
         for i in range(cls.n_cams):
             DummyFiles.CAMSGenerator(cls.cams_dir).generate()

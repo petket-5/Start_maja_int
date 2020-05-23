@@ -5,8 +5,7 @@ Copyright (C) CNES, CS-SI, CESBIO - All Rights Reserved
 This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
-Author:         Peter KETTIG <peter.kettig@cnes.fr>,
-Project:        Start-MAJA, CNES
+Author:         Peter KETTIG <peter.kettig@cnes.fr>
 """
 
 import unittest
@@ -18,7 +17,7 @@ from os import path as p
 
 class TestFileSystem(unittest.TestCase):
 
-    root = "test_filesystem_dir"
+    root = os.path.abspath(os.path.join(os.getcwd(), "test_filesystem_dir"))
 
     subdir_prefix = "subdir"
     file_a1 = "a"
@@ -74,84 +73,69 @@ class TestFileSystem(unittest.TestCase):
         self.assertFalse(os.path.exists(path))
     
     def test_get_file_depth1(self):
-        expected = "test_filesystem_dir/a"
+        expected = os.path.join(self.root, "a")
         dirnames_e = p.normpath(expected).split(os.sep)
-        filename = p.basename(expected)
-        calculated = FileSystem.get_file(root=self.root, filename="^a$")
-        dirnames_c = p.normpath(calculated).split(os.sep)
+        calculated = FileSystem.find(path=self.root, pattern="^a$", depth=1)
+        self.assertEqual(len(calculated), 1)
+        dirnames_c = p.normpath(calculated[0]).split(os.sep)
         for exp, calc in zip(dirnames_c[-1:], dirnames_e[-1:]):
             self.assertEqual(exp[:-1], calc[:-1])
-        self.assertEqual(filename, p.basename(calculated))
+        self.assertEqual(expected, calculated[0])
     
     def test_get_file_depth2(self):
-        expected = r"test_filesystem_dir/subdir0/a"
+        expected = os.path.join(self.root, "subdir1", "a")
         dirnames_e = p.normpath(expected).split(os.sep)
-        filename = p.basename(expected)
-        calculated = FileSystem.get_file(root=self.root, folders="subdir*", filename="^a$")
-        dirnames_c = p.normpath(calculated).split(os.sep)
-        for exp, calc in zip(dirnames_c[-2:], dirnames_e[-2:]):
+        calculated = FileSystem.find(path=self.root, pattern="^a$", depth=2)
+        self.assertEqual(len(calculated), 3)
+        dirnames_c = p.normpath(calculated[0]).split(os.sep)
+        for exp, calc in zip(dirnames_c[-1:], dirnames_e[-1:]):
             self.assertEqual(exp[:-1], calc[:-1])
-        self.assertEqual(filename, p.basename(calculated))
+        self.assertEqual(expected, sorted(calculated)[-1])
 
     def test_get_file_depth3(self):
-        expected = "test_filesystem_dir/subdir0/subdir1/c.xml"
+        expected = os.path.join(self.root, "subdir1", "subdir1", "a")
         dirnames_e = p.normpath(expected).split(os.sep)
-        filename = p.basename(expected)
-        calculated = FileSystem.get_file(root=self.root, folders="subdir*/subdir*", filename="*xml")
-        dirnames_c = p.normpath(calculated).split(os.sep)
-        for exp, calc in zip(dirnames_c[-3:], dirnames_e[-3:]):
+        calculated = FileSystem.find(path=self.root, pattern="^a$", depth=3)
+        self.assertEqual(len(calculated), 7)
+        dirnames_c = p.normpath(calculated[0]).split(os.sep)
+        for exp, calc in zip(dirnames_c[-1:], dirnames_e[-1:]):
             self.assertEqual(exp[:-1], calc[:-1])
-        self.assertEqual(filename, p.basename(calculated))
+        self.assertEqual(expected, sorted(calculated)[-1])
 
     def test_get_file_ending(self):
-        expected = "test_filesystem_dir/c.xml"
+        expected = os.path.join(self.root, "c.xml")
         dirnames_e = p.normpath(expected).split(os.sep)
-        filename = p.basename(expected)
-        calculated = FileSystem.get_file(root=self.root, folders=".", filename="*xml")
-        dirnames_c = p.normpath(calculated).split(os.sep)
+        calculated = FileSystem.find(path=self.root, pattern="*xml", depth=1)
+        self.assertEqual(len(calculated), 1)
+        dirnames_c = p.normpath(calculated[0]).split(os.sep)
         for exp, calc in zip(dirnames_c[-1:], dirnames_e[-1:]):
             self.assertEqual(exp[:-1], calc[:-1])
-        self.assertEqual(filename, p.basename(calculated))
-    
+        self.assertEqual(expected, calculated[0])
+
     def test_get_file_full(self):
-        expected = "test_filesystem_dir/b.jpg"
+        expected = os.path.join(self.root, "b.jpg")
         dirnames_e = p.normpath(expected).split(os.sep)
-        filename = p.basename(expected)
-        calculated = FileSystem.get_file(root=self.root, filename="b.jpg")
-        dirnames_c = p.normpath(calculated).split(os.sep)
+        calculated = FileSystem.find(path=self.root, pattern="b.jpg", depth=1)
+        calculated2 = FileSystem.find(path=self.root, pattern="b.jpg", depth=1, ftype="file")
+        self.assertEqual(calculated, calculated2)
+        self.assertEqual(len(calculated), 1)
+        dirnames_c = p.normpath(calculated[0]).split(os.sep)
         for exp, calc in zip(dirnames_c[-1:], dirnames_e[-1:]):
             self.assertEqual(exp[:-1], calc[:-1])
-        self.assertEqual(filename, p.basename(calculated))
-    
-    def test_get_file_from_folder_above(self):
-        expected = "test_filesystem_dir/b.jpg"
-        dirnames_e = p.normpath(expected).split(os.sep)
-        filename = p.basename(expected)
-        calculated = FileSystem.get_file(root=self.root, folders="./subdir0/../", filename="b.jpg")
-        dirnames_c = p.normpath(calculated).split(os.sep)
-        for exp, calc in zip(dirnames_c[-1:], dirnames_e[-1:]):
-            self.assertEqual(exp[:-1], calc[:-1])
-        self.assertEqual(filename, p.basename(calculated))
+        self.assertEqual(expected, calculated[0])
     
     def test_get_folder(self):
-        expected = "test_filesystem_dir/subdir0"
+        expected = os.path.join(self.root, "subdir0")
         dirnames_e = p.normpath(expected).split(os.sep)
         filename = p.basename(expected)
-        calculated = FileSystem.get_file(root=self.root, folders="./subdir0/")
-        dirnames_c = p.normpath(calculated).split(os.sep)
+        calculated = FileSystem.find(path=self.root, pattern="subdir0", depth=1)
+        calculated2 = FileSystem.find(path=self.root, pattern="subdir0", depth=1, ftype="folder")
+        self.assertEqual(calculated, calculated2)
+        self.assertEqual(len(calculated), 1)
+        dirnames_c = p.normpath(calculated[0]).split(os.sep)
         for exp, calc in zip(dirnames_c[-1:], dirnames_e[-1:]):
             self.assertEqual(exp[:-1], calc[:-1])
-        self.assertEqual(filename, p.basename(calculated))
-
-    def test_get_sub_folder(self):
-        expected = "test_filesystem_dir/subdir0"
-        dirnames_e = p.normpath(expected).split(os.sep)
-        filename = p.basename(expected)
-        calculated = FileSystem.get_file(root=self.root, folders="./subdir0/../subdir*")
-        dirnames_c = p.normpath(calculated).split(os.sep)
-        for exp, calc in zip(dirnames_c[-2:], dirnames_e[-2:]):
-            self.assertEqual(exp[:-1], calc[:-1])
-        self.assertEqual(filename[:-1], p.basename(calculated[:-1]))
+        self.assertEqual(filename, p.basename(calculated[0]))
 
     def test_find_get_sub_folder(self):
         expected = "subdir0"

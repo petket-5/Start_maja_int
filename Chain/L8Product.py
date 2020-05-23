@@ -6,12 +6,15 @@ This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
 Author:         Peter KETTIG <peter.kettig@cnes.fr>
-Project:        Start-MAJA, CNES
 """
 
+import re
 import os
 from datetime import datetime, timedelta
 from Chain.Product import MajaProduct
+from Common.FileSystem import symlink
+from prepare_mnt.mnt.SiteInfo import Site
+from Common import FileSystem, XMLTools
 
 
 class Landsat8Natif(MajaProduct):
@@ -20,10 +23,15 @@ class Landsat8Natif(MajaProduct):
     """
 
     base_resolution = (30, -30)
+    coarse_resolution = (240, -240)
 
     @property
     def platform(self):
         return "landsat8"
+
+    @property
+    def short_name(self):
+        return "l8"
 
     @property
     def type(self):
@@ -34,8 +42,11 @@ class Landsat8Natif(MajaProduct):
         return "l1c"
 
     @property
+    def nodata(self):
+        return 0
+
+    @property
     def tile(self):
-        import re
         site = self.base.split("_")[4]
         tile = re.search(self.reg_tile, site)
         if tile:
@@ -45,7 +56,7 @@ class Landsat8Natif(MajaProduct):
     @property
     def metadata_file(self):
         metadata_filename = self.base.split(".")[0] + ".HDR"
-        return self.get_file(folders="../", filename=metadata_filename)
+        return self.find_file(path=os.path.join(self.fpath, ".."), pattern=metadata_filename)[0]
 
     @property
     def validity(self):
@@ -54,7 +65,6 @@ class Landsat8Natif(MajaProduct):
         return False
 
     def link(self, link_dir):
-        from Common.FileSystem import symlink
         symlink(self.fpath, os.path.join(link_dir, self.base))
         mtd_file = self.metadata_file
         symlink(mtd_file, os.path.join(link_dir, os.path.basename(mtd_file)))
@@ -67,9 +77,8 @@ class Landsat8Natif(MajaProduct):
 
     @property
     def mnt_site(self):
-        from prepare_mnt.mnt.SiteInfo import Site
         try:
-            band_bx = self.get_file(filename=r"*_B0?1*.tif")
+            band_bx = self.find_file(r"*_B0?1*.tif")[0]
         except IOError as e:
             raise e
         return Site.from_raster(self.tile, band_bx)
@@ -95,6 +104,10 @@ class Landsat8Muscate(MajaProduct):
         return "landsat8"
 
     @property
+    def short_name(self):
+        return "l8"
+
+    @property
     def type(self):
         return "muscate"
 
@@ -107,20 +120,20 @@ class Landsat8Muscate(MajaProduct):
         raise ValueError("Unknown product level for %s" % self.base)
 
     @property
+    def nodata(self):
+        return 0
+
+    @property
     def tile(self):
-        import re
-        if len(self.base.split("_")) == 7:
-            site = "_".join(self.base.split("_")[3:5])
-        else:
-            site = self.base.split("_")[3]
-        tile = re.search(self.reg_tile, site)
+        site_basic = self.base.split("_")[3]
+        tile = re.search(self.reg_tile, self.base)
         if tile:
             return tile.group()[1:]
-        return site
+        return site_basic
 
     @property
     def metadata_file(self):
-        return self.get_file(filename="*MTD_ALL.xml")
+        return self.find_file("*MTD_ALL.xml")[0]
 
     @property
     def date(self):
@@ -131,7 +144,6 @@ class Landsat8Muscate(MajaProduct):
 
     @property
     def validity(self):
-        from Common import FileSystem, XMLTools
         if self.level == "l1c" and os.path.exists(self.metadata_file):
             return True
         if self.level == "l2a":
@@ -147,14 +159,12 @@ class Landsat8Muscate(MajaProduct):
         return False
 
     def link(self, link_dir):
-        from Common.FileSystem import symlink
         symlink(self.fpath, os.path.join(link_dir, self.base))
 
     @property
     def mnt_site(self):
-        from prepare_mnt.mnt.SiteInfo import Site
         try:
-            band_bx = self.get_file(filename=r"*_B0?1*.tif")
+            band_bx = self.find_file(r"*_B0?1*.tif")[0]
         except IOError as e:
             raise e
         return Site.from_raster(self.tile, band_bx)
@@ -174,10 +184,15 @@ class Landsat8LC1(MajaProduct):
     """
 
     base_resolution = (30, -30)
+    coarse_resolution = (240, -240)
 
     @property
     def platform(self):
         return "landsat8"
+
+    @property
+    def short_name(self):
+        return "l8"
 
     @property
     def type(self):
@@ -188,12 +203,16 @@ class Landsat8LC1(MajaProduct):
         return "l1c"
 
     @property
+    def nodata(self):
+        return 0
+
+    @property
     def tile(self):
         return self.base[3:9]
 
     @property
     def metadata_file(self):
-        return self.get_file(filename="*_MTL.txt")
+        return self.find_file("*_MTL.txt")[0]
 
     @property
     def date(self):
@@ -208,14 +227,12 @@ class Landsat8LC1(MajaProduct):
         return False
 
     def link(self, link_dir):
-        from Common.FileSystem import symlink
         symlink(self.fpath, os.path.join(link_dir, self.base))
 
     @property
     def mnt_site(self):
-        from prepare_mnt.mnt.SiteInfo import Site
         try:
-            band_bx = self.get_file(filename=r"*_B0?1*.tif")
+            band_bx = self.find_file(r"*_B0?1*.tif")[0]
         except IOError as e:
             raise e
         return Site.from_raster(self.tile, band_bx)
@@ -241,6 +258,10 @@ class Landsat8LC2(MajaProduct):
         return "landsat8"
 
     @property
+    def short_name(self):
+        return "l8"
+
+    @property
     def type(self):
         return "natif"
 
@@ -249,12 +270,16 @@ class Landsat8LC2(MajaProduct):
         return "l1c"
 
     @property
+    def nodata(self):
+        return 0
+
+    @property
     def tile(self):
         return self.base.split("_")[2]
 
     @property
     def metadata_file(self):
-        return self.get_file(filename="*_MTL.txt")
+        return self.find_file("*_MTL.txt")[0]
 
     @property
     def date(self):
@@ -269,14 +294,12 @@ class Landsat8LC2(MajaProduct):
         return False
 
     def link(self, link_dir):
-        from Common.FileSystem import symlink
         symlink(self.fpath, os.path.join(link_dir, self.base))
 
     @property
     def mnt_site(self):
-        from prepare_mnt.mnt.SiteInfo import Site
         try:
-            band_bx = self.get_file(filename=r"*_B0?1*.tif")
+            band_bx = self.find_file(r"*_B0?1*.tif")[0]
         except IOError as e:
             raise e
         return Site.from_raster(self.tile, band_bx)

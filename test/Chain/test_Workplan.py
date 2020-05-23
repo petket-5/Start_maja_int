@@ -88,7 +88,7 @@ class TestWorkplan(unittest.TestCase):
         self.assertTrue(os.path.isdir(self.outdir))
         self.assertEqual(wp.l1, self.l1)
         self.assertEqual(wp.l2_date, self.l2.date)
-        l2_prods = wp._get_available_l2_products()
+        l2_prods = wp.get_available_products(root=self.wdir, level="l2a", tile=self.l1.tile)
         # TODO Cannot check more because of misaligned dates and validity check. Need to add JPI to dummy-files
         self.assertEqual([], l2_prods)
 

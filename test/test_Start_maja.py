@@ -60,7 +60,7 @@ class TestStartMaja01XYZ(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        from Common import DummyFiles
+        from Chain import DummyFiles
         from Common import FileSystem
         cls.product_root = os.path.join(cls.root, cls.tile)
         FileSystem.create_directory(cls.product_root)
@@ -124,7 +124,7 @@ class TestStartMaja01XYZ(unittest.TestCase):
         self.assertEqual(start_maja.end, self.end_product)
 
     def test_parasite_l2a_product(self):
-        from Common import DummyFiles
+        from Chain import DummyFiles
         prod = DummyFiles.L2Generator(self.product_root,
                                       platform="venus",
                                       tile=self.tile)
@@ -195,7 +195,7 @@ class TestStartMaja31TCH(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        from Common import DummyFiles
+        from Chain import DummyFiles
         from Common import FileSystem
         cls.product_root = os.path.join(cls.root, cls.tile)
         FileSystem.create_directory(cls.product_root)
@@ -243,7 +243,6 @@ class TestStartMaja31TCH(unittest.TestCase):
         FileSystem.remove_directory(cls.cams)
         FileSystem.remove_directory(cls.mnt.dbl[0])
         FileSystem.remove_file(cls.mnt.hdr[0])
-
 
 
 if __name__ == '__main__':

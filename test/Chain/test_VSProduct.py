@@ -72,7 +72,7 @@ class TestVSProduct(unittest.TestCase):
         dates = ["20180201T051359", "20180201T051359", "20180201T000000"]
         validity = [True, False, False]
         for prod, tile, date, level, valid in zip(self.prod_vs_mus, tiles, dates, levels, validity):
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertIsInstance(p, VenusMuscate)
             self.assertEqual(p.level, level)
             self.assertEqual(p.platform, "venus")
@@ -92,7 +92,7 @@ class TestVSProduct(unittest.TestCase):
 
         # Other prods:
         for prod in self.prod_vs_nat + self.prods_other:
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertNotIsInstance(p, VenusMuscate)
 
     def test_reg_vs_natif(self):
@@ -100,7 +100,7 @@ class TestVSProduct(unittest.TestCase):
         dates = ["20180317T120000", "20180329T120000", "20191110T120000", "20200311T120000"]
         levels = ["l2a", "l1c", "l1c", "l1c"]
         for prod, tile, date, level in zip(self.prod_vs_nat, tiles, dates, levels):
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertIsInstance(p, VenusNatif)
             self.assertEqual(p.level, level)
             self.assertEqual(p.platform, "venus")
@@ -120,7 +120,7 @@ class TestVSProduct(unittest.TestCase):
 
         # Other prods:
         for prod in self.prod_vs_mus + self.prods_other:
-            p = MajaProduct(prod).factory()
+            p = MajaProduct.factory(prod)
             self.assertNotIsInstance(p, VenusNatif)
 
 

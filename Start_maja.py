@@ -15,9 +15,8 @@ import sys
 import re
 import logging
 from os import path as p
-from datetime import timedelta
+from datetime import timedelta, datetime
 from Common import FileSystem
-from Common import DateConverter
 from Chain import AuxFile, GippFile, Product
 from Chain.Workplan import Workplan, Nominal, Backward, Init
 
@@ -88,7 +87,7 @@ class StartMaja(object):
         # Parse product dates
         if start:
             if re.search(self.date_regex, start):
-                self.start = DateConverter.stringToDatetime(start.replace("-", ""))
+                self.start = datetime.strptime(start, "%Y-%m-%d")
             else:
                 raise ValueError("Unknown date encountered: %s" % start)
         else:
@@ -97,7 +96,7 @@ class StartMaja(object):
 
         if end:
             if re.search(self.date_regex, end):
-                self.end = DateConverter.stringToDatetime(end.replace("-", ""))
+                self.end = datetime.strptime(end, "%Y-%m-%d")
             else:
                 raise ValueError("Unknown date encountered: %s" % end)
         else:

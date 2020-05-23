@@ -91,6 +91,9 @@ class Landsat8Natif(MajaProduct):
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
 
+    def rgb_values(self):
+        raise NotImplementedError
+
 
 class Landsat8Muscate(MajaProduct):
     """
@@ -177,6 +180,9 @@ class Landsat8Muscate(MajaProduct):
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
 
+    def rgb_values(self):
+        raise NotImplementedError
+
 
 class Landsat8LC1(MajaProduct):
     """
@@ -245,6 +251,9 @@ class Landsat8LC1(MajaProduct):
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
 
+    def rgb_values(self):
+        raise NotImplementedError
+
 
 class Landsat8LC2(MajaProduct):
     """
@@ -310,4 +319,7 @@ class Landsat8LC2(MajaProduct):
                 "val": str(self.mnt_resolution[0]) + " " + str(self.mnt_resolution[1])}]
 
     def get_synthetic_band(self, synthetic_band, **kwargs):
+        raise NotImplementedError
+
+    def rgb_values(self):
         raise NotImplementedError

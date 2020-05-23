@@ -101,6 +101,9 @@ class VenusNatif(MajaProduct):
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
 
+    def rgb_values(self):
+        raise NotImplementedError
+
 
 class VenusMuscate(MajaProduct):
     """
@@ -188,4 +191,7 @@ class VenusMuscate(MajaProduct):
                 "val": str(self.mnt_resolution[0]) + " " + str(self.mnt_resolution[1])}]
 
     def get_synthetic_band(self, synthetic_band, **kwargs):
+        raise NotImplementedError
+
+    def rgb_values(self):
         raise NotImplementedError

@@ -124,6 +124,9 @@ class Sentinel2Natif(MajaProduct):
             raise ValueError("Unknown synthetic band %s" % synthetic_band)
         return output_filename
 
+    def rgb_values(self):
+        raise NotImplementedError
+
 
 class Sentinel2Muscate(MajaProduct):
     """
@@ -214,6 +217,9 @@ class Sentinel2Muscate(MajaProduct):
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
 
+    def rgb_values(self):
+        raise NotImplementedError
+
 
 class Sentinel2SSC(MajaProduct):
     """
@@ -291,4 +297,7 @@ class Sentinel2SSC(MajaProduct):
                  "val": str(self.mnt_resolution[0] * 2) + " " + str(self.mnt_resolution[1] * 2)}]
 
     def get_synthetic_band(self, synthetic_band, **kwargs):
+        raise NotImplementedError
+
+    def rgb_values(self):
         raise NotImplementedError

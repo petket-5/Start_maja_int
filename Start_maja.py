@@ -60,7 +60,7 @@ class StartMaja(object):
         self.site = site
         self.path_input_l1, self.path_input_l2, self.__site_info = self.__set_input_paths()
         self.logger.debug("Found %s" % self.__site_info)
-        self.logger.debug("Detecting input products...")
+        self.logger.info("Detecting input products...")
         self.avail_input_l1, self.avail_input_l2 = self.__get_all_available_products()
 
         if not kwargs.get("platform"):
@@ -109,34 +109,34 @@ class StartMaja(object):
 
         self.nbackward = kwargs.get("nbackward", int(8))
 
-        self.logger.debug("Checking GIPP files")
+        self.logger.info("Checking GIPP files")
         self.use_cams = kwargs.get("cams", False)
         if not p.isdir(self.gipp_root):
             raise OSError("Cannot find GIPP folder: %s" % self.gipp_root)
-        self.logger.debug("Setting up GIPP folder: %s" % self.gipp_root)
+        self.logger.info("Setting up GIPP folder: %s" % self.gipp_root)
         self.gipp = GippFile.GippSet(self.gipp_root, self.platform, self.ptype, cams=self.use_cams)
         if not self.gipp.check_completeness():
-            self.logger.debug("Cannot find GIPP for %s. Will attempt to download it." % self.gipp.gipp_folder_name)
+            self.logger.info("Cannot find GIPP for %s. Will attempt to download it." % self.gipp.gipp_folder_name)
 
         # Other parameters:
         self.overwrite = kwargs.get("overwrite", False)
         self.maja_log_level = "PROGRESS" if not self.verbose else "DEBUG"
         self.skip_confirm = kwargs.get("skip_confirm", False)
 
-        self.logger.debug("Searching for DTM")
+        self.logger.info("Searching for DTM")
         try:
             self.dtm = self.get_dtm()
         except OSError:
             self.dtm = None
-            self.logger.debug("Cannot find DTM. Will attempt to download it.")
+            self.logger.info("Cannot find DTM. Will attempt to download it.")
         else:
-            self.logger.debug("Found DTM: %s" % self.dtm.hdr)
+            self.logger.info("Found DTM: %s" % self.dtm.hdr)
 
         self.cams_files = []
         if self.rep_cams and self.use_cams:
-            self.logger.debug("Searching for CAMS")
+            self.logger.info("Searching for CAMS")
             self.cams_files = self.get_cams_files()
-            self.logger.debug("...found %s CAMS files" % len(self.cams_files))
+            self.logger.info("...found %s CAMS files" % len(self.cams_files))
         return
 
     @staticmethod
@@ -402,8 +402,6 @@ class StartMaja(object):
             else:
                 max_l2_diff = Workplan.max_l2_diff_s2_combined
             if date_gap >= max_l2_diff:
-                self.logger.info("Will not continue time-series. Date gap too large between products %s vs. %s" %
-                                 (prod.date, used_prod_l1[i].date))
                 index_current_prod = self.avail_input_l1.index(prod)
                 if len(self.avail_input_l1[index_current_prod:]) >= self.nbackward:
                     # Proceed with BACKWARD
@@ -467,7 +465,7 @@ class StartMaja(object):
             self.dtm = self.get_dtm()
             self.logger.info("DTM Creation succeeded.")
         if not self.gipp.check_completeness():
-            self.logger.debug("Attempting to download Gipp for %s" % self.gipp.gipp_folder_name)
+            self.logger.info("Attempting to download Gipp for %s" % self.gipp.gipp_folder_name)
             self.gipp.download()
         self.logger.info("GIPP Creation succeeded for %s" % self.gipp.gipp_folder_name)
 

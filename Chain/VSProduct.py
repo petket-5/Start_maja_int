@@ -6,15 +6,16 @@ This file is subject to the terms and conditions defined in
 file 'LICENSE.md', which is part of this source code package.
 
 Author:         Peter KETTIG <peter.kettig@cnes.fr>
+Project:        Start-MAJA, CNES
 """
 
-import re
 import os
+import re
 from datetime import datetime, timedelta
 from Chain.Product import MajaProduct
+from Common import FileSystem, XMLTools
 from Common.FileSystem import symlink
 from prepare_mnt.mnt.SiteInfo import Site
-from Common import FileSystem, XMLTools
 
 
 class VenusNatif(MajaProduct):
@@ -31,7 +32,7 @@ class VenusNatif(MajaProduct):
 
     @property
     def short_name(self):
-        return "vs"
+        return "vns"
 
     @property
     def type(self):
@@ -58,16 +59,16 @@ class VenusNatif(MajaProduct):
         site = re.search(site_reg, self.base)
         tile = re.search(self.reg_tile, site_basic)
         if site:
-            return site.group(1)
+            return site.group(1).rstrip("_")
         if tile:
-            return tile.group()[1:]
+            return tile.group()[1:].rstrip("_")
 
         return site_basic
 
     @property
     def metadata_file(self):
         metadata_filename = self.base.split(".")[0] + ".HDR"
-        return self.find_file(path=os.path.join(self.fpath, ".."), pattern=metadata_filename)[0]
+        return self.find_file(path=os.path.abspath(os.path.join(self.fpath, "..")), pattern=metadata_filename)[0]
 
     @property
     def date(self):
@@ -88,7 +89,7 @@ class VenusNatif(MajaProduct):
     @property
     def mnt_site(self):
         try:
-            band_bx = self.find_file(r"*IMG*DBL.TIF")[0]
+            band_bx = self.find_file(pattern=r"*IMG*DBL.TIF")[0]
         except IOError as e:
             raise e
         return Site.from_raster(self.tile, band_bx, shape_index_y=1, shape_index_x=2)
@@ -141,7 +142,10 @@ class VenusMuscate(MajaProduct):
 
     @property
     def tile(self):
-        site = self.base.split("_")[3]
+        if len(self.base.split("_")) == 7:
+            site = "_".join(self.base.split("_")[3:5])
+        else:
+            site = self.base.split("_")[3]
         tile = re.search(self.reg_tile, site)
         if tile:
             return tile.group()[1:]
@@ -149,7 +153,7 @@ class VenusMuscate(MajaProduct):
 
     @property
     def metadata_file(self):
-        return self.find_file("*MTD_ALL.xml")[0]
+        return self.find_file(pattern="*MTD_ALL.xml")[0]
 
     @property
     def date(self):
@@ -180,7 +184,7 @@ class VenusMuscate(MajaProduct):
     @property
     def mnt_site(self):
         try:
-            band_bx = self.find_file(r"*_B0?1*.tif")[0]
+            band_bx = self.find_file(pattern=r"*_B0?1*.tif")[0]
         except IOError as e:
             raise e
         return Site.from_raster(self.tile, band_bx)

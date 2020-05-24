@@ -176,10 +176,11 @@ class MNT(object):
         :return: Writes the tiles water_mask to the self.gsw_dst path.
         """
         occ_files = self.get_raw_water_data()
-        ds_occ = ImageTools.gdal_buildvrt(*occ_files)
+        vrt_path = os.path.join(self.wdir, "vrt_%s.vrt" % self.site.nom)
+        ImageTools.gdal_buildvrt(*occ_files, dst=vrt_path)
         # Overlay occurrence image with same extent as the given site.
         # Should the occurrence files not be complete, this sets all areas not covered by the occurrence to 0.
-        ds_warped = ImageTools.gdal_warp(ds_occ,
+        ds_warped = ImageTools.gdal_warp(vrt_path,
                                          r="near",
                                          te=self.site.te_str,
                                          t_srs=self.site.epsg_str,
@@ -188,6 +189,7 @@ class MNT(object):
                                          multi=True)
         # Threshold the final image and write to destination:
         image_bin = ds_warped.array > self.gsw_threshold
+        FileSystem.remove_file(vrt_path)
         ImageIO.write_geotiff_existing(image_bin, self.gsw_dst, ds_warped.get_ds())
 
     def to_maja_format(self, platform_id, mission_field, mnt_resolutions, coarse_res, full_res_only=False):

@@ -189,11 +189,11 @@ class TestMNTBase(unittest.TestCase):
         """
         resx, resy = 10000, -10000
         px, py = 11, 11
-        site = SiteInfo.Site("T30TYK", 32630,
+        site = SiteInfo.Site("T30SYJ", 32630,
                              px=px,
                              py=py,
-                             ul=(699960.000, 4500000.000),
-                             lr=(809760.000, 4390200.000),
+                             ul=(699960.000, 4400040.000),
+                             lr=(809760.000, 4290240.000),
                              res_x=resx,
                              res_y=resy)
         dem_dir = os.path.join(os.getcwd(), "test_get_water_data_spain_s2")
@@ -203,17 +203,17 @@ class TestMNTBase(unittest.TestCase):
         mnt.prepare_water_data()
         self.assertTrue(os.path.exists(water_mask))
         driver = GDalDatasetWrapper.from_file(water_mask)
-        img_expected = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-                        [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
-                        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
-                        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
-                        [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+        img_expected = [[0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
                         [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
-                        [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1]]
+                        [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
+                        [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1]]
         self.assertEqual(driver.resolution, (resx, resy))
         self.assertEqual(driver.epsg, 32630)
         self.assertEqual(driver.array.shape, (py, px))

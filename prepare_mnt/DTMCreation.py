@@ -25,8 +25,8 @@ class DTMCreator:
     def __init__(self, product_path, dem_dir, water_dir, type_dem, coarse_res, full_res_only):
         """
         Init the DTMCreator by finding the Metadata file assiociated with the product
-        :param product: The full path to the L1C/L2A product folder
-        :type product: string
+        :param product_path: The full path to the L1C/L2A product folder
+        :type product_path: string
         :param dem_dir: DEM directory
         :param water_dir: Water-mask directory
         :param type_dem: Type of mnt
@@ -35,13 +35,15 @@ class DTMCreator:
         :param full_res_only: Write full resolution masks only
         """
         from Chain import Product
-        self.product = Product.MajaProduct(product_path).factory()
+        self.product = Product.MajaProduct.factory(os.path.normpath(product_path))
         print(self.product)
         if not self.product:
             raise ValueError("Unknown product found for path %s" % product_path)
         self.dem_dir = dem_dir
         self.water_dir = water_dir
         self.type_dem = type_dem
+        if self.type_dem != "srtm" and not self.dem_dir:
+            raise ValueError("Need to provide param '--dem_dir' for chosen DEM type: %s" % self.type_dem)
         self.coarse_res = int(coarse_res)
         self.full_res_only = full_res_only
 
@@ -84,7 +86,8 @@ if __name__ == "__main__":
                         help="The path to temp the folder."
                              "If not existing, it is set to a /tmp/ location", required=False, type=str)
     parser.add_argument("--type_dem",
-                        help="DEM type. Default is 'srtm'.", required=False, type=str, default="srtm")
+                        help="DEM type. Default is srtm.", required=False, type=str, default="srtm",
+                        choices=["srtm", "eudem"])
     parser.add_argument("-c", "--coarse_res",
                         help="Coarse resolution in meters. Default is 240", default=240, required=False, type=int)
     parser.add_argument("--full_res_only", help="Output full resolution imgs only. Discards the coarse_res parameter.",

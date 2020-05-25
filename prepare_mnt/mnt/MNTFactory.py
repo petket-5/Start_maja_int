@@ -8,6 +8,8 @@ file 'LICENSE.md', which is part of this source code package.
 Author:         Peter KETTIG <peter.kettig@cnes.fr>
 """
 
+from prepare_mnt.mnt.SRTM import SRTM
+from prepare_mnt.mnt.EuDEM import EuDEM
 
 class MNTFactory:
     """
@@ -28,8 +30,7 @@ class MNTFactory:
         Checks the given mnt_type and returns the class accordingly
         :return: A derived MNTBase object, None if mnt_type unknown.
         """
-        from prepare_mnt.mnt.SRTM import SRTM
-        # TODO Add more options here: ALOS, TDX, EuDEM...
+        # TODO Add more options here: ALOS, TDX...
         if self.type_dem == "srtm":
             # SRTM is distributed in 90m.
             # Thus, all initial calculation has to be done at this resolution:
@@ -40,4 +41,11 @@ class MNTFactory:
                                                       mnt_resolutions=self.mnt_resolutions,
                                                       coarse_res=self.coarse_res,
                                                       full_res_only=self.full_res_only)
+        elif self.type_dem == "eudem":
+            return EuDEM(site=self.site,
+                         **self.kwargs).to_maja_format(platform_id=self.plaform_id,
+                                                       mission_field=self.mission_field,
+                                                       mnt_resolutions=self.mnt_resolutions,
+                                                       coarse_res=self.coarse_res,
+                                                       full_res_only=self.full_res_only)
         return None

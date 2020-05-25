@@ -404,7 +404,7 @@ class StartMaja(object):
                 index_current_prod = self.avail_input_l1.index(prod)
                 if len(self.avail_input_l1[index_current_prod:]) >= self.nbackward:
                     # Proceed with BACKWARD
-                    l1_list = self.avail_input_l1[index_current_prod:index_current_prod + 1 + self.nbackward]
+                    l1_list = self.avail_input_l1[index_current_prod:index_current_prod + self.nbackward]
                     workplans.append(Backward(wdir=self.rep_work,
                                               outdir=self.path_input_l2,
                                               l1=prod,

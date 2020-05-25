@@ -41,7 +41,7 @@ class TestSRTM(unittest.TestCase):
                              ul=(199980.000, 4500000.000),
                              lr=(309780.000, 4390200.000),)
         srtm_codes = SRTM.SRTM.get_srtm_codes(site)
-        self.assertEqual(srtm_codes, ['srtm_36_04', 'srtm_36_05', 'srtm_37_04', 'srtm_37_05'])
+        self.assertEqual(srtm_codes, ['srtm_36_04', 'srtm_37_04', 'srtm_36_05', 'srtm_37_05'])
 
     def test_get_raw_data(self):
         site = SiteInfo.Site("T31TCJ", 32631,

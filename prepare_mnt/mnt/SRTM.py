@@ -30,7 +30,7 @@ class SRTM(MNT):
         :param kwargs: Forwarded parameters to :class:`prepare_mnt.mnt.MNTBase`
         """
         super(SRTM, self).__init__(site, **kwargs)
-        if math.fabs(self.site.ul_latlon[0]) > 60 or math.fabs(self.site.lr_latlon[0]) > 60:
+        if math.fabs(self.site.ul_lonlat[1]) > 60 or math.fabs(self.site.lr_lonlat[1]) > 60:
             raise ValueError("Latitude over +-60deg - No SRTM data available!")
         self.srtm_codes = self.get_srtm_codes(self.site)
         if not self.dem_version:
@@ -97,13 +97,13 @@ class SRTM(MNT):
         Get the list of SRTM files for a given site.
         :return: The list of filenames needed in order to cover to whole site.
         """
-        ul_latlon_srtm = [int(site.ul_latlon[1] + 180) / 5 + 1, int(60 - site.ul_latlon[0]) / 5 + 1]
-        lr_latlon_srtm = [int(site.lr_latlon[1] + 180) / 5 + 1, int(60 - site.lr_latlon[0]) / 5 + 1]
+        ul_lonlat_srtm = [int(site.ul_lonlat[0] + 180) / 5 + 1, int(60 - site.ul_lonlat[1]) / 5 + 1]
+        lr_lonlat_srtm = [int(site.lr_lonlat[0] + 180) / 5 + 1, int(60 - site.lr_lonlat[1]) / 5 + 1]
 
         srtm_files = []
-        for x in range(int(ul_latlon_srtm[0]), int(lr_latlon_srtm[0] + 1)):
-            for y in range(int(ul_latlon_srtm[1]), int(lr_latlon_srtm[1] + 1)):
-                srtm_files.append("srtm_%02d_%02d" % (x, y))
+        for x in range(int(ul_lonlat_srtm[1]), int(lr_lonlat_srtm[1] + 1)):
+            for y in range(int(ul_lonlat_srtm[0]), int(lr_lonlat_srtm[0] + 1)):
+                srtm_files.append("srtm_%02d_%02d" % (y, x))
         return srtm_files
 
 

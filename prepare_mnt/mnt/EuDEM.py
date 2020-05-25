@@ -106,8 +106,8 @@ class EuDEM(MNT):
         """
         grid_step = 10
         from Common import ImageIO
-        ur_etrs89 = ImageIO.transform_point((site.lr_latlon[0], site.ul_latlon[1]), old_epsg=4326, new_epsg=3035)
-        ll_etrs89 = ImageIO.transform_point((site.ul_latlon[0], site.lr_latlon[1]), old_epsg=4326, new_epsg=3035)
+        ur_etrs89 = ImageIO.transform_point((site.lr_lonlat[0], site.ul_lonlat[1]), old_epsg=4326, new_epsg=3035)
+        ll_etrs89 = ImageIO.transform_point((site.ul_lonlat[0], site.lr_lonlat[1]), old_epsg=4326, new_epsg=3035)
 
         def myfloor(val, base=grid_step):
             return base * math.floor(val / base)

@@ -26,17 +26,17 @@ class Site:
         self.res_y = kwargs.get("res_y", None)
         self.ul = ul
         self.lr = lr
-        self.ul_latlon, self.lr_latlon = self.latlon_minmax
+        self.ul_lonlat, self.lr_lonlat = self.lonlat_minmax
 
     @property
-    def latlon_minmax(self):
+    def lonlat_minmax(self):
         """
         Get lat and lon min and max values
         :return: latmin, latmax, lonmin, lonmax of the current sites
         """
-        ul_latlon = ImageIO.transform_point(self.ul, self.epsg, new_epsg=4326)
-        lr_latlon = ImageIO.transform_point(self.lr, self.epsg, new_epsg=4326)
-        return ul_latlon, lr_latlon
+        ul_lonlat = ImageIO.transform_point(self.ul, self.epsg, new_epsg=4326)
+        lr_lonlat = ImageIO.transform_point(self.lr, self.epsg, new_epsg=4326)
+        return ul_lonlat, lr_lonlat
 
     @property
     def projwin(self):

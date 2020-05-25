@@ -103,9 +103,9 @@ class TestImageIO(unittest.TestCase):
 
     def test_transform_point_lat_lon(self):
         center = (653095.355, 5071879.228)
-        lat_lon_expected = (45.78349724618419, 4.9694934619557145)
-        lat_lon_calc = ImageIO.transform_point(center, old_epsg=32631, new_epsg=4326)
-        np.testing.assert_almost_equal(lat_lon_calc, lat_lon_expected)
+        lon_lat_expected = (4.9694934619557145, 45.78349724618419)
+        lon_lat_calc = ImageIO.transform_point(center, old_epsg=32631, new_epsg=4326)
+        np.testing.assert_almost_equal(lon_lat_calc, lon_lat_expected)
 
 
 if __name__ == '__main__':

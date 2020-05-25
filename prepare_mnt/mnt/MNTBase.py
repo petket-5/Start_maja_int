@@ -132,24 +132,24 @@ class MNT(object):
         :param grid_step: The step size of the grid
         :return: The list of filenames of format 'XX(E/W)_YY(N/S)' needed in order to cover to whole site.
         """
-        if site.ul_latlon[1] > 170 and site.lr_latlon[1] < 160:
+        if site.ul_lonlat[0] > 170 and site.lr_lonlat[0] < 160:
             raise ValueError("Cannot wrap around longitude change")
 
-        point = namedtuple("point", ("y", "x"))
+        point = namedtuple("point", ("x", "y"))
         pts = []
-        for pt in [site.ul_latlon, site.lr_latlon]:
-            lat_dec = (math.fabs(pt[0]) / grid_step)
-            lon_dec = (math.fabs(pt[1]) / grid_step)
-            if pt[0] > 0:
+        for pt in [site.ul_lonlat, site.lr_lonlat]:
+            lat_dec = (math.fabs(pt[1]) / grid_step)
+            lon_dec = (math.fabs(pt[0]) / grid_step)
+            if pt[1] > 0:
                 lat_id = int(math.ceil(lat_dec) * grid_step)
             else:
                 lat_id = -1 * int(math.floor(lat_dec) * grid_step)
 
-            if pt[1] < 0:
+            if pt[0] < 0:
                 lon_id = int(math.ceil(lon_dec) * grid_step)
             else:
                 lon_id = -1 * int(math.floor(lon_dec) * grid_step)
-            pts.append(point(lat_id, lon_id))
+            pts.append(point(lon_id, lat_id))
         gsw_granules = []
         for x in range(pts[1].x, pts[0].x + grid_step, grid_step):
             for y in range(pts[1].y, pts[0].y + grid_step, grid_step):

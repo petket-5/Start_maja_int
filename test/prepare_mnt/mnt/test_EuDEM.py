@@ -45,7 +45,7 @@ class TestEuDEM(unittest.TestCase):
     geotransform_e30n30 = (3000000.0, 25.0, 0.0, 4000000.0, 0.0, -25.0)
 
     @classmethod
-    def asetUpClass(cls):
+    def setUpClass(cls):
         # Note those directories are not destroyed after executing tests.
         # This is in order to avoid multiple downloads amongst different test classes.
         FileSystem.create_directory(cls.raw_gsw)
@@ -80,7 +80,7 @@ class TestEuDEM(unittest.TestCase):
         FileSystem.remove_file(to_zip[0])
 
     @classmethod
-    def atearDownClass(cls):
+    def tearDownClass(cls):
         FileSystem.remove_directory(cls.raw_eudem)
         FileSystem.remove_directory(cls.raw_gsw)
 
@@ -113,53 +113,7 @@ class TestEuDEM(unittest.TestCase):
         eudem_codes = EuDEM.EuDEM.get_eudem_codes(site)
         self.assertEqual(eudem_codes, ['eu_dem_v11_E30N20', 'eu_dem_v11_E30N30'])
 
-    def test_get_raw_data(self):
-        site = SiteInfo.Site("T31TCJ", 32631,
-                             ul=(300000.000, 4900020.000),
-                             lr=(409800.000, 4790220.000))
-        dem_dir = os.path.join(os.getcwd(), "eudem_dir")
-        eudem = EuDEM.EuDEM(site, dem_dir=dem_dir, raw_dem=self.raw_eudem, raw_gsw=self.raw_gsw, wdir=dem_dir)
-        self.assertTrue(os.path.isdir(dem_dir))
-        eudem_codes = EuDEM.EuDEM.get_eudem_codes(site)
-        eudem.get_raw_data()
-        for code in eudem_codes:
-            filepath = os.path.join(self.raw_eudem, code + ".zip")
-            self.assertTrue(os.path.isfile(filepath))
-        FileSystem.remove_directory(dem_dir)
-
-    def atest_eudem_prepare_mnt_s2_tls(self):
-        resx, resy = 10000, -10000
-        site = SiteInfo.Site("T31TCJ", 32631,
-                             px=11,
-                             py=11,
-                             ul=(300000.000, 4900020.000),
-                             lr=(409800.000, 4790220.000),
-                             res_x=resx,
-                             res_y=resy)
-        dem_dir = os.path.join(os.getcwd(), "test_eudem_prepare_mnt_s2_tls")
-        s = EuDEM.EuDEM(site, dem_dir=dem_dir, raw_dem=self.raw_eudem, raw_gsw=self.raw_gsw, wdir=dem_dir)
-        self.assertTrue(os.path.isdir(dem_dir))
-        srtm = s.prepare_mnt()
-        self.assertTrue(os.path.isfile(srtm))
-        driver = GDalDatasetWrapper.from_file(srtm)
-        expected_img = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
-        self.assertEqual(driver.resolution, (resx, resy))
-        self.assertEqual(driver.array.shape, (site.py, site.px))
-        self.assertEqual(driver.nodata_value, 0)
-        np.testing.assert_allclose(expected_img, driver.array, atol=1.5)
-        FileSystem.remove_directory(dem_dir)
-
-    def atest_eudem_prepare_mnt_s2_31ucr(self):
+    def test_eudem_prepare_mnt_s2_31ucr(self):
         resx, resy = 10000, -10000
         site = SiteInfo.Site("T31UCR", 32631,
                              px=11,

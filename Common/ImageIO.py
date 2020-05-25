@@ -168,12 +168,14 @@ def write_geotiff_existing(img, dst, ds, **kwargs):
 
 def transform_point(point, old_epsg, new_epsg=4326):
     """
-    Transform a tuple (x,y) into lat lon using EPSG 4326
+    Transform a tuple (x,y) (or lon/lat) to a different EPSG coordinate reference system.
+    For all other transformations apart from EPSG->EPSG, gdal's API has to be used directly.
+    Note: This works only with 2D points (x,y) - Z is omitted in the output.
 
     :param point: The point as tuple (x,y)
     :param old_epsg: The EPSG code of the old coordinate system
     :param new_epsg: The EPSG code of the new coordinate system to transfer to. Default is 4326 (WGS84).
-    :return: The point's location in the new epsg as (x, y) - z is omitted due to it being 0 most of the time
+    :return: The point's location in the new epsg as (lon/lat) - z is omitted due to it being 0 most of the time
     """
 
     source = osr.SpatialReference()
@@ -185,7 +187,6 @@ def transform_point(point, old_epsg, new_epsg=4326):
         # GDAL 3 changes axis order: https://github.com/OSGeo/gdal/issues/1546
         source.SetAxisMappingStrategy(osgeo.osr.OAMS_TRADITIONAL_GIS_ORDER)
         target.SetAxisMappingStrategy(osgeo.osr.OAMS_TRADITIONAL_GIS_ORDER)
-
     transform = osr.CoordinateTransformation(source, target)
     new_pt = transform.TransformPoint(point[0], point[1])
     return new_pt[0], new_pt[1]

@@ -45,7 +45,7 @@ class TestEuDEM(unittest.TestCase):
     geotransform_e30n30 = (3000000.0, 25.0, 0.0, 4000000.0, 0.0, -25.0)
 
     @classmethod
-    def setUpClass(cls):
+    def asetUpClass(cls):
         # Note those directories are not destroyed after executing tests.
         # This is in order to avoid multiple downloads amongst different test classes.
         FileSystem.create_directory(cls.raw_gsw)
@@ -80,7 +80,7 @@ class TestEuDEM(unittest.TestCase):
         FileSystem.remove_file(to_zip[0])
 
     @classmethod
-    def tearDownClass(cls):
+    def atearDownClass(cls):
         FileSystem.remove_directory(cls.raw_eudem)
         FileSystem.remove_directory(cls.raw_gsw)
 
@@ -127,7 +127,7 @@ class TestEuDEM(unittest.TestCase):
             self.assertTrue(os.path.isfile(filepath))
         FileSystem.remove_directory(dem_dir)
 
-    def test_eudem_prepare_mnt_s2_tls(self):
+    def atest_eudem_prepare_mnt_s2_tls(self):
         resx, resy = 10000, -10000
         site = SiteInfo.Site("T31TCJ", 32631,
                              px=11,
@@ -159,7 +159,7 @@ class TestEuDEM(unittest.TestCase):
         np.testing.assert_allclose(expected_img, driver.array, atol=1.5)
         FileSystem.remove_directory(dem_dir)
 
-    def test_eudem_prepare_mnt_s2_31ucr(self):
+    def atest_eudem_prepare_mnt_s2_31ucr(self):
         resx, resy = 10000, -10000
         site = SiteInfo.Site("T31UCR", 32631,
                              px=11,

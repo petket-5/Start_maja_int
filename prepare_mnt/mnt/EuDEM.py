@@ -106,15 +106,15 @@ class EuDEM(MNT):
         """
         grid_step = 10
         from Common import ImageIO
-        ur_etrs89 = ImageIO.transform_point((site.lr_latlon[1], site.ul_latlon[0]), old_epsg=4326, new_epsg=3035)
-        ll_etrs89 = ImageIO.transform_point((site.ul_latlon[1], site.lr_latlon[0]), old_epsg=4326, new_epsg=3035)
+        ur_etrs89 = ImageIO.transform_point((site.lr_latlon[0], site.ul_latlon[1]), old_epsg=4326, new_epsg=3035)
+        ll_etrs89 = ImageIO.transform_point((site.ul_latlon[0], site.lr_latlon[1]), old_epsg=4326, new_epsg=3035)
 
         def myfloor(val, base=grid_step):
             return base * math.floor(val / base)
-        lon_min = myfloor(ll_etrs89[1] / 100000)
-        lon_max = myfloor(ur_etrs89[1] / 100000)
-        lat_min = myfloor(ll_etrs89[0] / 100000)
-        lat_max = myfloor(ur_etrs89[0] / 100000)
+        lon_min = myfloor(ll_etrs89[0] / 100000)
+        lon_max = myfloor(ur_etrs89[0] / 100000)
+        lat_min = myfloor(ll_etrs89[1] / 100000)
+        lat_max = myfloor(ur_etrs89[1] / 100000)
         lat_codes = list(range(lat_min, lat_max + grid_step, grid_step))
         lon_codes = list(range(lon_min, lon_max + grid_step, grid_step))
         eudem_granules = []

@@ -189,7 +189,7 @@ class GDalDatasetWrapper(object):
         ul, lr = self.ul_lr
         epsg_old = self.epsg
         if epsg_old != 4326:
-            lat, lon = ImageIO.transform_point(ul, epsg_old)
+            lon, lat = ImageIO.transform_point(ul, epsg_old)
         else:
             lat, lon = ul
         lon_mod = int(lon / 6)

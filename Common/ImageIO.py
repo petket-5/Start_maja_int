@@ -9,6 +9,7 @@ Author:         Peter KETTIG <peter.kettig@cnes.fr>
 """
 
 import os
+import osgeo
 from osgeo import gdal, gdal_array, osr
 import numpy as np
 
@@ -174,14 +175,17 @@ def transform_point(point, old_epsg, new_epsg=4326):
     :param new_epsg: The EPSG code of the new coordinate system to transfer to. Default is 4326 (WGS84).
     :return: The point's location in the new epsg as (x, y) - z is omitted due to it being 0 most of the time
     """
+
     source = osr.SpatialReference()
     source.ImportFromEPSG(old_epsg)
-
     # The target projection
     target = osr.SpatialReference()
     target.ImportFromEPSG(new_epsg)
+    if int(osgeo.__version__[0]) >= 3:
+        # GDAL 3 changes axis order: https://github.com/OSGeo/gdal/issues/1546
+        source.SetAxisMappingStrategy(osgeo.osr.OAMS_TRADITIONAL_GIS_ORDER)
+        target.SetAxisMappingStrategy(osgeo.osr.OAMS_TRADITIONAL_GIS_ORDER)
+
     transform = osr.CoordinateTransformation(source, target)
     new_pt = transform.TransformPoint(point[0], point[1])
-    if int(gdal.VersionInfo()) >= 3000000:
-        return new_pt[0], new_pt[1]
-    return new_pt[1], new_pt[0]
+    return new_pt[0], new_pt[1]

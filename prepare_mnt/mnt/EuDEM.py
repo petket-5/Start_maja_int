@@ -126,7 +126,7 @@ class EuDEM(MNT):
                 if eudem_code not in eudem_archives:
                     raise ValueError("Cannot process this product with EuDEM."
                                      "(Partially) out of region:"
-                                     "%s -> [%s, %s]" % (eudem_code, site.lr_latlon, site.ul_latlon))
+                                     "%s -> [%s, %s]" % (eudem_code, site.lr_lonlat, site.ul_lonlat))
                 eudem_granules.append(eudem_code)
         return eudem_granules
 

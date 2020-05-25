@@ -8,30 +8,12 @@ file 'LICENSE.md', which is part of this source code package.
 Author:         Peter KETTIG <peter.kettig@cnes.fr>
 """
 
-from PIL.Image import BICUBIC
 import os
 import numpy as np
-import uuid
 from osgeo import gdal
 from Common import FileSystem
 from Common.GDal import buildvrt, translate, warp, retile, merge
 from Common.GDalDatasetWrapper import GDalDatasetWrapper
-
-
-def resize(img, input_res, output_res, resample=BICUBIC):
-    """
-    Resize a numpy array using PIL
-    :param img: The input image of ndim == 2
-    :param input_res: The input resolution
-    :param output_res: The output resolution
-    :param resample: The resampling mode. Default is BICUBIC.
-    :return: The numpy array of different resolution.
-    """
-    from PIL import Image
-    assert img.ndim == 2
-    output_size = tuple(int(i * input_res / output_res) for i in img.shape)
-    out = Image.fromarray(img).resize(output_size, resample)
-    return np.array(out)
 
 
 def extract_class(mask, class_to_extract, value_type):

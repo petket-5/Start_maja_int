@@ -127,7 +127,7 @@ class TestL8Product(unittest.TestCase):
 
     def test_reg_l8_lc1(self):
         tiles = ["039022"]
-        dates = ["20130107T120000"]
+        dates = ["20130317T120000"]
         levels = ["l1c"]
         for prod, tile, date, level in zip(self.prod_l8_lc1, tiles, dates, levels):
             p = MajaProduct.factory(prod)

@@ -222,7 +222,7 @@ class Landsat8LC1(MajaProduct):
 
     @property
     def date(self):
-        year_doy = self.base[9:15]
+        year_doy = self.base[9:16]
         # Add a timedelta of 12hrs in order to compensate for the missing H/M/S:
         return datetime.strptime(year_doy, "%Y%j") + timedelta(hours=12)
 

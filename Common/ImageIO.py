@@ -80,7 +80,7 @@ def gdal_write(drv_type, img, dst, projection, coordinates, **kwargs):
     options = kwargs.get("options", [])
     driver = gdal.GetDriverByName(drv_type)
     # Add dimension for a single band-image
-    if img.ndim is 2:
+    if img.ndim == 2:
         img = img[..., np.newaxis]
     # Set output dtype if not specified. GDAL cannot write GTiff as binary files, so convert to uint8:
     if img.dtype == np.bool:

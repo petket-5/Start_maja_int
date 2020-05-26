@@ -166,6 +166,9 @@ class RawCAMSArchive(object):
 
         b4 = ElementTree.SubElement(b3, "ModelLevels")
         b4.text = " ".join(str(p) for p in press_levels)
+        if old_format:
+            b5 = ElementTree.SubElement(b3, "NumberOfNonInterpolableValues")
+            b5.text = "20"
 
     @staticmethod
     def create_archive(output_dir, netcdf, output_file_basename):

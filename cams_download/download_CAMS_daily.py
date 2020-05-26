@@ -49,7 +49,7 @@ def download_files(dt, file_type, t_hour, step, path_out):
             'step'    : step,
             'levtype' : "SFC",
             'date'    : date_courante,
-            'time'    : time,
+            'time'    : t_hour,
             'type'    : "fc",
             'param'   : models,
             'area'    : "G",
@@ -64,6 +64,7 @@ def download_files(dt, file_type, t_hour, step, path_out):
         nom_rh = "CAMS_RH_" + date_courante + 'UTC' + str(int(t_hour)+int(step)).zfill(2) + '0000.nc'
         path_rh = os.path.join(path_out, nom_rh)
         print('Nom fichier de sortie RH :', path_rh)
+        levellist = "1/2/3/5/7/10/20/30/50/70/100/150/200/250/300/400/500/600/700/800/850/900/925/950/1000"
         server.retrieve({
               'stream'  : "oper",
               'class'   : "mc",
@@ -71,9 +72,9 @@ def download_files(dt, file_type, t_hour, step, path_out):
               'expver'  : "0001",
               'step'    : step,
               'levtype' : "pl",
-              "levelist": "1/2/3/5/7/10/20/30/50/70/100/150/200/250/300/400/500/600/700/850/925/1000",
+              "levelist": levellist,
               'date'    : date_courante,
-              'time'    : time,
+              'time'    : t_hour,
               'type'    : "fc",
               'param'   : "157.128",
               'area'    : "G",
@@ -108,7 +109,7 @@ def download_files(dt, file_type, t_hour, step, path_out):
             'levtype' : "ml",
             "levelist": levels,
             'date'    : date_courante,
-            'time'    : time,
+            'time'    : t_hour,
             'type'    : "fc",
             'param'   : models,
             'area'    : "G",

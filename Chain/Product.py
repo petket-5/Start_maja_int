@@ -118,7 +118,7 @@ class MajaProduct(object):
         platform = self.platform
         ptype = self.type
         types = {"sentinel2": {"natif": "SENTINEL-2_", "muscate": "SENTINEL2_", "ssc": "SENTINEL-2_"},
-                 "landsat8": {"lc1": "LANDSAT_8", "lc2": "LANDSAT_8", "muscate": "LANDSAT8"},
+                 "landsat8": {"natif": "LANDSAT_8", "muscate": "LANDSAT8"},
                  "venus": {"natif": "VENuS", "muscate": "VENUS"},
                  "spot5": {"muscate": "SPOT5"},
                  "spot4": {"muscate": "SPOT4"},

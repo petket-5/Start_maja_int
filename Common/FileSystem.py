@@ -13,8 +13,6 @@ import os
 import shutil
 import logging
 
-logger = logging.getLogger("root")
-
 
 def create_directory(path):
     """
@@ -166,7 +164,7 @@ def run_external_app(name, args, log_level=logging.DEBUG, logfile=None):
     env = os.environ.copy()
     if os.name != "nt" and ";" in env["PATH"]:
         env["PATH"] = env["PATH"].split(";")[1]
-    logger.log(log_level, "Executing cmd: " + cmd)
+    logger.debug("Executing cmd: %s" % cmd)
     start = timer()
     try:
         with subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env) as proc:
@@ -189,7 +187,7 @@ def run_external_app(name, args, log_level=logging.DEBUG, logfile=None):
             for item in full_log:
                 f.write("%s\n" % item)
     # Show total execution time for the App:
-    logger.log(log_level, "{0} took {1:.2f}s".format(os.path.basename(name), end - start))
+    logger.debug("{0} took {1:.2f}s".format(os.path.basename(name), end - start))
     return return_code
 
 
@@ -244,3 +242,9 @@ def find_in_file(filename, pattern):
     if lut_url:
         return lut_url.group()
     return None
+
+
+if __name__ == "__main__":
+    pass
+else:
+    logger = logging.getLogger("root")

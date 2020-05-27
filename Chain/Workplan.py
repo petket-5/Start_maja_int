@@ -180,10 +180,10 @@ class Init(Workplan):
         return return_code
 
     def __str__(self):
-        return str("%19s | %5s | %8s | %70s | %15s" % (self.date, self.tile,
-                                                       self.mode, self.l1.base,
-                                                       "Init mode - No previous L2"
-                                                       + (" with CAMS" if self.aux_files else "")))
+        return str("%19s | %10s | %8s | %70s | %15s" % (self.date, self.tile,
+                                                        self.mode, self.l1.base,
+                                                        "Init mode - No previous L2"
+                                                        + (" with CAMS" if self.aux_files else "")))
 
 
 class Backward(Workplan):
@@ -212,10 +212,10 @@ class Backward(Workplan):
         return return_code
 
     def __str__(self):
-        return str("%19s | %5s | %8s | %70s | %15s" % (self.date, self.tile,
-                                                       self.mode, self.l1.base,
-                                                       "Backward of %s products" % str(len(self.l1_list))
-                                                       + (" with CAMS" if self.aux_files else "")))
+        return str("%19s | %10s | %8s | %70s | %15s" % (self.date, self.tile,
+                                                        self.mode, self.l1.base,
+                                                        "Backward of %s products" % str(len(self.l1_list))
+                                                        + (" with CAMS" if self.aux_files else "")))
 
 
 class Nominal(Workplan):
@@ -291,10 +291,10 @@ class Nominal(Workplan):
         return return_code
 
     def __str__(self):
-        return str("%19s | %5s | %8s | %70s | %15s" % (self.date, self.tile,
-                                                       self.mode, self.l1.base,
-                                                       "L2 from previous"
-                                                       + (" with CAMS" if self.aux_files else "")))
+        return str("%19s | %10s | %8s | %70s | %15s" % (self.date, self.tile,
+                                                        self.mode, self.l1.base,
+                                                        "L2 from previous"
+                                                        + (" with CAMS" if self.aux_files else "")))
 
 
 if __name__ == "__main__":

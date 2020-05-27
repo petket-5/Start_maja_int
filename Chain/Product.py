@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import tempfile
+import logging
 from Common import ImageTools
 from Common.FileSystem import find
 from prepare_mnt.mnt.MNTFactory import MNTFactory
@@ -80,7 +81,7 @@ class MajaProduct(object):
         if re.search(reg_s2_ssc, base):
             return Sentinel2SSC(fpath, **kwargs)
         if re.search(reg_s2_prd, base):
-            print("WARNING: S2 PRD products currently not supported.")
+            logger.warning("S2 PRD products currently not supported.")
         # Landsat-8
         if re.search(reg_l8_nat, base):
             return Landsat8Natif(fpath, **kwargs)
@@ -230,3 +231,9 @@ class MajaProduct(object):
                self.metadata_file == other.metadata_file and \
                self.tile == other.tile and \
                self.platform == other.platform
+
+
+if __name__ == "__main__":
+    pass
+else:
+    logger = logging.getLogger("root")

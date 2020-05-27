@@ -44,7 +44,7 @@ class Site:
 
     @property
     def te_str(self):
-        y_val = list(sorted([self.lr[1], self.ul[1]]))
+        y_val = list(sorted([self.ul[1], self.lr[1]]))
         x_val = list(sorted([self.lr[0], self.ul[0]]))
         return " ".join([str(x_val[0]), str(y_val[0]), str(x_val[1]), str(y_val[1])])
 

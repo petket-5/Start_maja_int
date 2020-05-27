@@ -162,8 +162,9 @@ class GDalDatasetWrapper(object):
         :rtype: tuple of float
         """
         ulx, xres, xskew, uly, yskew, yres = self.geotransform
-        lrx = ulx + (self.array.shape[0] * xres)
-        lry = uly + (self.array.shape[1] * yres)
+        # Index from the end - GDal usually orders bands-first:
+        lrx = ulx + (self.array.shape[-2] * xres)
+        lry = uly + (self.array.shape[-1] * yres)
         return ulx, uly, lrx, lry
 
     @property

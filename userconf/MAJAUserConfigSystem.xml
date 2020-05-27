@@ -36,6 +36,8 @@
     <Computing>
         <!-- Number of used core -->
         <NbThreads>8</NbThreads>
+        <!-- Number of MB of RAM to use -->
+        <RAM>8096</RAM>
         <!-- Option to generate the product image at L2 resolution (ie. public part) -->
         <EnableL2ResolutionProcessing>true</EnableL2ResolutionProcessing> 
         <!-- 'Caching' configuration -->

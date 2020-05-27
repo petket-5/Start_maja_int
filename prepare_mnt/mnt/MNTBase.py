@@ -44,6 +44,7 @@ class MNT(object):
             self.wdir = tempfile.mkdtemp(prefix="raw_dem_")
         else:
             FileSystem.create_directory(self.wdir)
+        # This needs to be provided for EuDEM:
         self.raw_dem = kwargs.get("raw_dem", None)
         if not self.raw_dem:
             self.raw_dem = tempfile.mkdtemp(prefix="raw_dem_")
@@ -217,12 +218,13 @@ class MNT(object):
         assert len(mnt_resolutions) >= 1
         basename = str("%s_TEST_AUX_REFDE2_%s_%s" % (platform_id, self.site.nom, str(self.dem_version).zfill(4)))
 
+        # Get mnt data
+        mnt_max_res = self.prepare_mnt()
+
         # Water mask not needed with optional coarse_res writing:
         if coarse_res and not full_res_only:
             # Get water data
             self.prepare_water_data()
-        # Get mnt data
-        mnt_max_res = self.prepare_mnt()
         mnt_res = (self.site.res_x, self.site.res_y)
         dbl_base = basename + ".DBL.DIR"
         dbl_dir = os.path.join(self.dem_dir, dbl_base)

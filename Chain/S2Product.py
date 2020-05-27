@@ -25,7 +25,7 @@ class Sentinel2Natif(MajaProduct):
     """
 
     base_resolution = (10, -10)
-    coarse_resolution = (240, -240)
+    coarse_resolution = (120, -120)
 
     @property
     def platform(self):
@@ -87,6 +87,13 @@ class Sentinel2Natif(MajaProduct):
                 {"name": "R2",
                  "val": str(self.mnt_resolution[0] * 2) + " " + str(self.mnt_resolution[1] * 2)}]
 
+    @property
+    def max_l2_diff(self):
+        if self.date < datetime(year=2017, month=7, day=1):
+            return timedelta(days=30)
+        else:
+            return timedelta(days=15)
+
     def get_synthetic_band(self, synthetic_band, **kwargs):
         wdir = kwargs.get("wdir", self.fpath)
         output_folder = os.path.join(wdir, self.base)
@@ -134,7 +141,7 @@ class Sentinel2Muscate(MajaProduct):
     """
 
     base_resolution = (10, -10)
-    coarse_resolution = (240, -240)
+    coarse_resolution = (120, -120)
 
     @property
     def platform(self):
@@ -214,6 +221,14 @@ class Sentinel2Muscate(MajaProduct):
                 {"name": "R2",
                  "val": str(self.mnt_resolution[0] * 2) + " " + str(self.mnt_resolution[1] * 2)}]
 
+
+    @property
+    def max_l2_diff(self):
+        if self.date < datetime(year=2017, month=7, day=1):
+            return timedelta(days=30)
+        else:
+            return timedelta(days=15)
+
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
 
@@ -227,6 +242,7 @@ class Sentinel2SSC(MajaProduct):
     """
 
     base_resolution = (10, -10)
+    coarse_resolution = (120, -120)
 
     @property
     def platform(self):
@@ -295,6 +311,13 @@ class Sentinel2SSC(MajaProduct):
                 "val": str(self.mnt_resolution[0]) + " " + str(self.mnt_resolution[1])},
                 {"name": "R2",
                  "val": str(self.mnt_resolution[0] * 2) + " " + str(self.mnt_resolution[1] * 2)}]
+
+    @property
+    def max_l2_diff(self):
+        if self.date < datetime(year=2017, month=7, day=1):
+            return timedelta(days=30)
+        else:
+            return timedelta(days=15)
 
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError

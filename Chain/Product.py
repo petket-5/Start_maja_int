@@ -69,7 +69,7 @@ class MajaProduct(object):
         reg_l8_mus = r"^LANDSAT8(-OLITIRS|-OLI-TIRS|-OLITIRS-XSTHPAN)?" \
                      r"_(\d{8})-\d{6}-\d{3}_L(1C|2A)_T?\w+_[DC]_V\d*-\d*$"
         reg_l8_nat = r"^L8_\w{4}_L8C_L[12]VALD_[\d_]+.DBL.DIR$"
-        reg_vs_mus = r"^VENUS(-XS)?_\d{8}-\d{6}-\d{3}_L(1C|2A|3A)_\w+_[DC]_V\d*-\d*$"
+        reg_vs_mus = r"^VENUS(-XS)?_\d{8}-\d{6}-\d{3}_L(1C|2A|3A)_[\w-]+_[DC]_V\d*-\d*$"
         reg_vs_nat = r"^VE_\w{4}_VSC_L[12]VALD_\w+.DBL.DIR$"
 
         # Sentinel-2
@@ -176,6 +176,10 @@ class MajaProduct(object):
                             "sentinel1": "S2_"}
 
         return platform_choices[self.platform]
+
+    @property
+    def max_l2_diff(self):
+        return NotImplementedError
 
     def get_mnt(self, **kwargs):
         try:

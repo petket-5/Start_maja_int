@@ -98,6 +98,9 @@ class VenusNatif(MajaProduct):
     def mnt_resolutions_dict(self):
         return [{"name": "XS",
                 "val": str(self.mnt_resolution[0]) + " " + str(self.mnt_resolution[1])}]
+    @property
+    def max_l2_diff(self):
+        return timedelta(days=15)
 
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
@@ -193,6 +196,10 @@ class VenusMuscate(MajaProduct):
     def mnt_resolutions_dict(self):
         return [{"name": "XS",
                 "val": str(self.mnt_resolution[0]) + " " + str(self.mnt_resolution[1])}]
+
+    @property
+    def max_l2_diff(self):
+        return timedelta(days=15)
 
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError

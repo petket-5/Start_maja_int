@@ -88,6 +88,10 @@ class Landsat8Natif(MajaProduct):
         return [{"name": "XS",
                 "val": str(self.mnt_resolution[0]) + " " + str(self.mnt_resolution[1])}]
 
+    @property
+    def max_l2_diff(self):
+        return timedelta(days=30)
+
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
 
@@ -101,6 +105,7 @@ class Landsat8Muscate(MajaProduct):
     """
 
     base_resolution = (30, -30)
+    coarse_resolution = (240, -240)
 
     @property
     def platform(self):
@@ -177,6 +182,10 @@ class Landsat8Muscate(MajaProduct):
         return [{"name": "XS",
                 "val": str(self.mnt_resolution[0]) + " " + str(self.mnt_resolution[1])}]
 
+    @property
+    def max_l2_diff(self):
+        return timedelta(days=30)
+
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
 
@@ -248,6 +257,10 @@ class Landsat8LC1(MajaProduct):
         return [{"name": "XS",
                 "val": str(self.mnt_resolution[0]) + " " + str(self.mnt_resolution[1])}]
 
+    @property
+    def max_l2_diff(self):
+        return timedelta(days=30)
+
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError
 
@@ -261,6 +274,7 @@ class Landsat8LC2(MajaProduct):
     """
 
     base_resolution = (30, -30)
+    coarse_resolution = (240, -240)
 
     @property
     def platform(self):
@@ -317,6 +331,10 @@ class Landsat8LC2(MajaProduct):
     def mnt_resolutions_dict(self):
         return [{"name": "XS",
                 "val": str(self.mnt_resolution[0]) + " " + str(self.mnt_resolution[1])}]
+
+    @property
+    def max_l2_diff(self):
+        return timedelta(days=30)
 
     def get_synthetic_band(self, synthetic_band, **kwargs):
         raise NotImplementedError

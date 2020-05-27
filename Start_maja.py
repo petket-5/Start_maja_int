@@ -106,8 +106,14 @@ class StartMaja(object):
 
         self.nbackward = kwargs.get("nbackward", int(8))
 
+        self.cams_files = []
+        if self.rep_cams:
+            self.logger.info("Searching for CAMS")
+            self.cams_files = self.get_cams_files()
+            self.logger.info("...found %s CAMS files" % len(self.cams_files))
+
         self.logger.info("Checking GIPP files")
-        self.use_cams = kwargs.get("cams", False)
+        self.use_cams = kwargs.get("cams", False) and self.cams_files
         if not p.isdir(self.gipp_root):
             raise OSError("Cannot find GIPP folder: %s" % self.gipp_root)
         self.logger.info("Setting up GIPP folder: %s" % self.gipp_root)
@@ -124,15 +130,10 @@ class StartMaja(object):
         self.type_dem = kwargs.get("type_dem", "any")
         self.dtm = self.get_dtm(type_dem=self.type_dem)
         if not self.dtm:
-            self.logger.info("Cannot find DTM. Will attempt to download it.")
+            self.logger.info("Cannot find DTM. Will attempt to download it for type '%s'" % self.type_dem)
         else:
             self.logger.info("Found DTM: %s" % self.dtm.hdr)
 
-        self.cams_files = []
-        if self.rep_cams and self.use_cams:
-            self.logger.info("Searching for CAMS")
-            self.cams_files = self.get_cams_files()
-            self.logger.info("...found %s CAMS files" % len(self.cams_files))
         return
 
     @staticmethod
@@ -395,14 +396,14 @@ class StartMaja(object):
                     pass
                 pass
         else:
-            logger.info("Skipping L1 product %s because it was already processed!" % used_prod_l1[0].base)
+            logger.debug("Skipping L1 product %s because it was already processed!" % used_prod_l1[0].base)
 
         # For the rest: Setup NOMINAL.
         # Except: The time series is 'stopped' - The gap between two products is too large.
         # In this case, proceed with a re-init.
         for i, prod in enumerate(used_prod_l1[1:]):
             if prod in has_l2 or self.overwrite:
-                logger.info("Skipping L1 product %s because it was already processed!" % prod.base)
+                logger.debug("Skipping L1 product %s because it was already processed!" % prod.base)
                 continue
             # Note: i, in this case is the previous product -> Not the current one, which is i+1
             date_gap = prod.date - used_prod_l1[i].date
@@ -478,7 +479,7 @@ class StartMaja(object):
         workplans = self.create_workplans(self.max_product_difference)
         logger.info("%s workplan(s) successfully created:" % len(workplans))
         # Print without the logging-formatting:
-        print(str("%19s | %5s | %8s | %70s | %15s" % ("DATE", "TILE", "MODE", "L1-PRODUCT", "ADDITIONAL INFO")))
+        print(str("%19s | %10s | %8s | %70s | %15s" % ("DATE", "TILE", "MODE", "L1-PRODUCT", "ADDITIONAL INFO")))
         for wp in workplans:
             print(wp)
         if not self.skip_confirm:

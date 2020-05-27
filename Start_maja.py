@@ -117,7 +117,7 @@ class StartMaja(object):
 
         # Other parameters:
         self.overwrite = kwargs.get("overwrite", False)
-        self.maja_log_level = "DEBUG" if not self.logger.level == logging.DEBUG else "PROGRESS"
+        self.maja_log_level = "DEBUG" if self.logger.level == logging.DEBUG else "PROGRESS"
         self.skip_confirm = kwargs.get("skip_confirm", False)
 
         self.logger.info("Searching for DTM")

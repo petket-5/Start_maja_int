@@ -11,7 +11,7 @@ Project:        Start-MAJA, CNES
 
 import os
 import logging
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 logger = logging.getLogger("root")
 
@@ -21,14 +21,6 @@ class Workplan(object):
     Stores all information about a single execution of Maja
     """
     mode = "INIT"
-
-    # Maximum timedelta before restarting the time-series
-    # In the period before S2A+B, this is set to 30days
-    max_l2_diff_s2a_only = timedelta(days=30)
-    # With both satellites, 14days
-    max_l2_diff_s2_combined = timedelta(days=14)
-    # The date at which to use one or the other timedelta (Everything after is considered S2A+B):
-    l2_diff_switch_date = datetime(year=2017, month=7, day=1)
 
     def __init__(self, wdir, outdir, l1, log_level="INFO", **kwargs):
         supported_params = {
@@ -250,11 +242,7 @@ class Nominal(Workplan):
         # Get only products which are close to the desired l2 date and before the l1 date:
         closest_l2_prods = []
         for prod in avail_input_l2:
-            if prod.date.date() < self.l2_diff_switch_date.date():
-                max_l2_diff = self.max_l2_diff_s2a_only
-            else:
-                max_l2_diff = self.max_l2_diff_s2_combined
-            if abs(prod.date - self.l2_date) < max_l2_diff and prod.validity is True:
+            if abs(prod.date - self.l2_date) < prod.max_l2_diff and prod.validity is True:
                 closest_l2_prods.append(prod)
         return closest_l2_prods
 

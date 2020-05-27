@@ -41,8 +41,8 @@ class TestEuDEM(unittest.TestCase):
                   PARAMETER["false_northing",3210000],\
                   UNIT["metre",1,\
                   AUTHORITY["EPSG","9001"]]]'
-    geotransform_e30n20 = (3000000.0, 25.0, 0.0, 3000000.0, 0.0, -25.0)
-    geotransform_e30n30 = (3000000.0, 25.0, 0.0, 4000000.0, 0.0, -25.0)
+    geotransform_e30n20 = (3000000.0, 2500.0, 0.0, 3000000.0, 0.0, -2500.0)
+    geotransform_e30n30 = (3000000.0, 2500.0, 0.0, 4000000.0, 0.0, -2500.0)
 
     @classmethod
     def setUpClass(cls):
@@ -51,8 +51,8 @@ class TestEuDEM(unittest.TestCase):
         FileSystem.create_directory(cls.raw_gsw)
         FileSystem.create_directory(cls.raw_eudem)
 
-        # Setup dummy EuDEM file
-        arr = np.zeros((40000, 40000), dtype=np.float32)
+        # Setup dummy EuDEM file of reduced resolution
+        arr = np.zeros((400, 400), dtype=np.float32)
         to_zip = [os.path.join(cls.raw_eudem, "eu_dem_v11_E30N20.TIF"),
                   os.path.join(cls.raw_eudem, "eu_dem_v11_E30N20.TIF.ovr"),
                   os.path.join(cls.raw_eudem, "eu_dem_v11_E30N20.TIF.aux.xml"),
@@ -64,10 +64,10 @@ class TestEuDEM(unittest.TestCase):
                 zip_archive.write(file, compress_type=zipfile.ZIP_DEFLATED)
         FileSystem.remove_file(to_zip[0])
 
-        # Setup dummy EuDEM file
-        arr = np.ones((40000, 40000), dtype=np.float32)
+        # Setup dummy EuDEM file of reduced resolution
+        arr = np.ones((400, 400), dtype=np.float32)
         # Add some other value to around half of the image
-        arr[:, 26000:] = 10
+        arr[:, 260:] = 10
         to_zip = [os.path.join(cls.raw_eudem, "eu_dem_v11_E30N30.TIF"),
                   os.path.join(cls.raw_eudem, "eu_dem_v11_E30N30.TIF.ovr"),
                   os.path.join(cls.raw_eudem, "eu_dem_v11_E30N30.TIF.aux.xml"),
@@ -128,21 +128,53 @@ class TestEuDEM(unittest.TestCase):
         srtm = s.prepare_mnt()
         self.assertTrue(os.path.isfile(srtm))
         driver = GDalDatasetWrapper.from_file(srtm)
-        expected_img = [[0.97309405, 0.7521929, 6.474948, 10.373903, 10.000381, 10., 10., 10., 10., 10., 10.],
-                        [0.99031144, 0.65923285, 5.700566, 10.36404, 10.004622, 10., 10., 10., 10., 10., 10.],
-                        [0.9981984, 0.62618303, 4.9196444, 10.304145, 10.016703, 10., 10., 10., 10., 10., 10.],
-                        [0.9999834, 0.63360953, 4.1597095, 10.176466, 10.03906, 10., 10., 10., 10., 10., 10.],
-                        [1., 0.6668039, 3.4444818, 9.96793, 10.072577, 10., 10., 10., 10., 10., 10.],
-                        [1., 0.70316166, 2.83158, 9.630597, 10.131011, 10., 10., 10., 10., 10., 10.],
-                        [1., 0.7575271, 2.2618623, 9.236621, 10.184218, 10., 10., 10., 10., 10., 10.],
-                        [1., 0.8140483, 1.7763586, 8.753765, 10.240689, 10., 10., 10., 10., 10., 10.],
-                        [1., 0.8673623, 1.380255, 8.18752, 10.295113, 10., 10., 0., 0., 0., 0.],
+        expected_img = [[1., 1., 6., 10., 10., 10., 10., 10., 10., 10., 10.],
+                        [1., 1., 6., 10., 10., 10., 10., 10., 10., 10., 10.],
+                        [1., 1., 5., 10., 10., 10., 10., 10., 10., 10., 10.],
+                        [1., 1., 4., 10., 10., 10., 10., 10., 10., 10., 10.],
+                        [1., 1., 3., 10., 10., 10., 10., 10., 10., 10., 10.],
+                        [1., 1., 3., 10., 10., 10., 10., 10., 10., 10., 10.],
+                        [1., 1., 2., 9., 10., 10., 10., 10., 10., 10., 10.],
+                        [1., 1., 2., 9., 10., 10., 10., 10., 10., 10., 10.],
+                        [1., 1., 1., 8., 10., 10., 10., 0., 0., 0., 0.],
                         [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
                         [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]]
         self.assertEqual(driver.resolution, (resx, resy))
         self.assertEqual(driver.array.shape, (site.py, site.px))
         self.assertEqual(driver.nodata_value, 0)
-        np.testing.assert_allclose(expected_img, driver.array, atol=1.5)
+        np.testing.assert_allclose(expected_img, driver.array)
+        FileSystem.remove_directory(dem_dir)
+
+    def test_eudem_prepare_mnt_s2_tls(self):
+        resx, resy = 10000, -10000
+        site = SiteInfo.Site("T31TCJ", 32631,
+                             ul=(300000.000, 4900020.000),
+                             lr=(409800.000, 4790220.000),
+                             px=11,
+                             py=11,
+                             res_x=resx,
+                             res_y=resy)
+        dem_dir = os.path.join(os.getcwd(), "test_eudem_prepare_mnt_s2_31ucr")
+        s = EuDEM.EuDEM(site, dem_dir=dem_dir, raw_dem=self.raw_eudem, raw_gsw=self.raw_gsw, wdir=dem_dir)
+        self.assertTrue(os.path.isdir(dem_dir))
+        srtm = s.prepare_mnt()
+        self.assertTrue(os.path.isfile(srtm))
+        driver = GDalDatasetWrapper.from_file(srtm)
+        expected_img = [[0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+                        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]]
+        self.assertEqual(driver.resolution, (resx, resy))
+        self.assertEqual(driver.array.shape, (site.py, site.px))
+        self.assertEqual(driver.nodata_value, 0)
+        np.testing.assert_allclose(expected_img, driver.array)
         FileSystem.remove_directory(dem_dir)
 
 

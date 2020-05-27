@@ -25,16 +25,12 @@ def modify_folders_file(root, new_file, **kwargs):
     :param kwargs: The arguments to modify inside the file
     :return: The full path to the new file
     """
-    try:
-        import configparser as cfg
-    except ImportError:
-        import ConfigParser as cfg
-
+    import configparser as cfg
     assert os.path.isfile(root)
     cfg_parser = cfg.RawConfigParser()
     cfg_parser.read(root)
     for arg in kwargs:
-        cfg_parser.set("PATH", arg, kwargs[arg])
+        cfg_parser.set("Maja_Inputs", arg, kwargs[arg])
 
     with open(new_file, 'w') as f:
         cfg_parser.write(f)
@@ -116,8 +112,7 @@ class TestStartMaja01XYZ(unittest.TestCase):
                                self.start,
                                self.end,
                                nbackward=self.nbackward,
-                               overwrite=self.overwrite,
-                               verbose=self.verbose)
+                               overwrite=self.overwrite)
         self.assertGreaterEqual(self.n_dummies + 2, len(start_maja.avail_input_l1))
         self.assertGreaterEqual(self.n_dummies, len(start_maja.avail_input_l2))
         self.assertEqual(start_maja.start, self.start_product)
@@ -136,8 +131,7 @@ class TestStartMaja01XYZ(unittest.TestCase):
                       self.start,
                       self.end,
                       nbackward=self.nbackward,
-                      overwrite=self.overwrite,
-                      verbose=self.verbose)
+                      overwrite=self.overwrite)
         import shutil
         shutil.rmtree(prod.prod)
         self.assertFalse(os.path.exists(prod.prod))
@@ -153,11 +147,24 @@ class TestStartMaja01XYZ(unittest.TestCase):
                       self.start,
                       self.end,
                       nbackward=self.nbackward,
-                      overwrite=self.overwrite,
-                      verbose=self.verbose)
+                      overwrite=self.overwrite)
 
         os.remove(folders_path)
         self.assertFalse(os.path.exists(folders_path))
+
+    def test_custom_start_end_dates(self):
+        start = datetime(2017, 1, 1)
+        end = datetime(2019, 1, 1)
+        s = StartMaja(self.folders_file,
+                      self.tile,
+                      self.site,
+                      start.strftime("%Y-%m-%d"),
+                      end.strftime("%Y-%m-%d"),
+                      nbackward=self.nbackward,
+                      overwrite=self.overwrite)
+
+        self.assertEqual(s.start, start)
+        self.assertEqual(s.end, end)
 
     def test_custom_start_end_dates(self):
         start = datetime(2017, 1, 1)
@@ -173,7 +180,6 @@ class TestStartMaja01XYZ(unittest.TestCase):
 
         self.assertEqual(s.start, start)
         self.assertEqual(s.end, end)
-
 
 class TestStartMaja31TCH(unittest.TestCase):
 
@@ -247,4 +253,6 @@ class TestStartMaja31TCH(unittest.TestCase):
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 5)
+    import logging
+    logger = logging.getLogger("root")
     unittest.main()

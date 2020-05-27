@@ -13,7 +13,7 @@ import os
 import shutil
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger("root")
 
 
 def create_directory(path):
@@ -43,7 +43,7 @@ def remove_file(filename):
     try:
         os.remove(filename)
     except OSError:
-        log.debug("Cannot remove file %s" % filename)
+        logger.debug("Cannot remove file %s" % filename)
     return
 
 
@@ -55,7 +55,7 @@ def remove_directory(directory):
     try:
         shutil.rmtree(directory)
     except OSError:
-        log.debug("Cannot remove directory {0}".format(directory))
+        logger.debug("Cannot remove directory {0}".format(directory))
 
 
 def find(pattern, path, case_sensitive=False, depth=None, ftype="all"):
@@ -126,8 +126,9 @@ def symlink(src, dst):
     try:
         os.symlink(src, dst)
     except OSError:
-        raise OSError("Cannot create symlink for %s at %s."
-                      "Does your plaform support symlinks?" % (src, dst))
+        logger.error("Cannot create symlink for %s at %s."
+                     "Does your plaform support symlinks?" % (src, dst))
+        shutil.copy(src, dst)
 
 
 def __get_return_code(proc, log_level):
@@ -165,7 +166,7 @@ def run_external_app(name, args, log_level=logging.DEBUG, logfile=None):
     env = os.environ.copy()
     if os.name != "nt" and ";" in env["PATH"]:
         env["PATH"] = env["PATH"].split(";")[1]
-    log.log(log_level, "Executing cmd: " + cmd)
+    logger.log(log_level, "Executing cmd: " + cmd)
     start = timer()
     try:
         with subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env) as proc:
@@ -188,7 +189,7 @@ def run_external_app(name, args, log_level=logging.DEBUG, logfile=None):
             for item in full_log:
                 f.write("%s\n" % item)
     # Show total execution time for the App:
-    log.log(log_level, "{0} took {1:.2f}s".format(os.path.basename(name), end - start))
+    logger.log(log_level, "{0} took {1:.2f}s".format(os.path.basename(name), end - start))
     return return_code
 
 

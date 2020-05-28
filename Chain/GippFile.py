@@ -204,7 +204,7 @@ class GippSet(object):
         :return: True if existing. False if not.
         """
         from Common import FileSystem
-        n_files_per_model = 5
+        n_files_per_model = 4
         expected_n_models = [6, 8] if self.cams_suffix else [1]
         try:
             found_n_models = len(self.get_models())
@@ -223,7 +223,7 @@ class GippSet(object):
         if len(eefs) < 4:
             return False
         # Models = 4 (TOCR, DIRT, DIFT, ALBD) + 1 constant for WATV per satellite
-        if len(hdrs) != len(dbls) != n_files_per_model * self.n_sat * (found_n_models - 1) + 1 * self.n_sat:
+        if len(hdrs) != len(dbls) != n_files_per_model * self.n_sat * found_n_models + 1 * self.n_sat:
             return False
 
         return True

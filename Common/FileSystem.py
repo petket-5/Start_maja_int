@@ -147,13 +147,15 @@ def __get_return_code(proc, log_level):
     return proc.wait(), full_log
 
 
-def run_external_app(name, args, log_level=logging.DEBUG, logfile=None):
+def run_external_app(name, args, log_level=logging.DEBUG, logfile=None, skip_error=False):
     """
     Run an external application using the subprocess module
+
     :param name: the Name of the application
     :param args: The list of arguments to run the app with
     :param log_level: The log level for the messages displayed.
     :param logfile: Save all logs of the subprocess to this file.
+    :param skip_error: Do not raise error if command fails. Default is False.
     :return: The return code of the App with logfile written to disk if desired.
     """
     from timeit import default_timer as timer
@@ -173,7 +175,7 @@ def run_external_app(name, args, log_level=logging.DEBUG, logfile=None):
         # For Python 2.7, popen has no context manager:
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
         return_code, full_log = __get_return_code(proc, log_level=log_level)
-    if return_code:
+    if return_code and not skip_error:
         raise subprocess.CalledProcessError(return_code, cmd)
     end = timer()
     if logfile and not os.path.isdir(logfile):

@@ -123,6 +123,7 @@ class StartMaja(object):
 
         # Other parameters:
         self.overwrite = kwargs.get("overwrite", False)
+        self.skip_error = kwargs.get("skip_errors", False)
         self.maja_log_level = "DEBUG" if self.logger.level == logging.DEBUG else "PROGRESS"
         self.skip_confirm = kwargs.get("skip_confirm", False)
 
@@ -337,7 +338,6 @@ class StartMaja(object):
         # Get actually usable L1 products:
         used_prod_l1 = [prod for prod in self.avail_input_l1
                         if self.start <= prod.date <= self.end]
-
         if not used_prod_l1:
             raise ValueError("No products available for the given start and end dates: %s -> %s"
                              % (self.start, self.end))
@@ -363,6 +363,7 @@ class StartMaja(object):
                                          l1=used_prod_l1[0],
                                          l2_date=used_prod_l1[0].date,
                                          log_level=self.maja_log_level,
+                                         skip_errors=self.skip_error,
                                          cams=Workplan.filter_cams_by_products(self.cams_files,
                                                                                [used_prod_l1[0].date])
                                          ))
@@ -378,6 +379,7 @@ class StartMaja(object):
                                               l1=l1,
                                               l1_list=l1_list,
                                               log_level=self.maja_log_level,
+                                              skip_errors=self.skip_error,
                                               cams=Workplan.filter_cams_by_products(self.cams_files,
                                                                                     [prod.date for prod in
                                                                                      [l1] + l1_list])
@@ -390,6 +392,7 @@ class StartMaja(object):
                                           outdir=self.path_input_l2,
                                           l1=used_prod_l1[0],
                                           log_level=self.maja_log_level,
+                                          skip_errors=self.skip_error,
                                           cams=Workplan.filter_cams_by_products(self.cams_files,
                                                                                 [used_prod_l1[0].date])
                                           ))
@@ -402,7 +405,7 @@ class StartMaja(object):
         # Except: The time series is 'stopped' - The gap between two products is too large.
         # In this case, proceed with a re-init.
         for i, prod in enumerate(used_prod_l1[1:]):
-            if prod in has_l2 or self.overwrite:
+            if prod in has_l2 and self.overwrite:
                 logger.debug("Skipping L1 product %s because it was already processed!" % prod.base)
                 continue
             # Note: i, in this case is the previous product -> Not the current one, which is i+1
@@ -417,6 +420,7 @@ class StartMaja(object):
                                               l1=prod,
                                               l1_list=l1_list,
                                               log_level=self.maja_log_level,
+                                              skip_errors=self.skip_error,
                                               cams=Workplan.filter_cams_by_products(self.cams_files,
                                                                                     [prod.date for prod in
                                                                                      [prod] + l1_list])
@@ -429,6 +433,7 @@ class StartMaja(object):
                                           outdir=self.path_input_l2,
                                           l1=prod,
                                           log_level=self.maja_log_level,
+                                          skip_errors=self.skip_error,
                                           cams=Workplan.filter_cams_by_products(self.cams_files,
                                                                                 [prod.date])
                                           ))
@@ -440,6 +445,7 @@ class StartMaja(object):
                                          l1=prod,
                                          l2_date=prod.date,
                                          log_level=self.maja_log_level,
+                                         skip_errors=self.skip_error,
                                          cams=Workplan.filter_cams_by_products(self.cams_files, [prod.date]),
                                          # Fallback parameters:
                                          remaining_l1=used_prod_l1[(i + 1):],
@@ -523,12 +529,15 @@ if __name__ == "__main__":
                         choices=["srtm", "eudem", "any"])
     parser.add_argument("-y", help="Skip workplan confirmation. Default is False",
                         action="store_true", required=False, default=False)
+    parser.add_argument("--skip_errors", help="Skip erroneous products without stopping.",
+                        action="store_true", required=False, default=False)
     parser.add_argument("--version", action='version', version='%(prog)s ' + str(StartMaja.version))
     parser.add_argument("--platform", help="Manually override which platform to use."
                                            "By default this is deducted by the available input product(s)",
                         choices=["sentinel2", "landsat8", "venus"], type=str, required=False, default=None)
     args = parser.parse_args()
 
+    # TODO Add error skipping
     logging_level = logging.DEBUG if args.verbose else logging.INFO
     logger = StartMaja.init_loggers(msg_level=logging_level)
 
@@ -536,5 +545,5 @@ if __name__ == "__main__":
                   args.start, args.end, nbackward=args.nbackward, logger=logger,
                   overwrite=args.overwrite, cams=args.cams,
                   skip_confirm=args.y, platform=args.platform,
-                  type_dem=args.type_dem)
+                  type_dem=args.type_dem, skip_errors=args.skip_errors)
     s.run()

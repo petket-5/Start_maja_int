@@ -22,7 +22,7 @@ class Workplan(object):
     """
     mode = "INIT"
 
-    def __init__(self, wdir, outdir, l1, log_level="INFO", **kwargs):
+    def __init__(self, wdir, outdir, l1, log_level="INFO", skip_errors=False, **kwargs):
         supported_params = {
             param
             for param in ("cams", "meteo",)
@@ -34,6 +34,7 @@ class Workplan(object):
         self.l1 = l1
         self.outdir = outdir
 
+        self.skip_errors = skip_errors
         self.root = wdir
         self.input_dir = os.path.join(self.root, "Start_maja_" + self.hash_dirname(self.l1.base))
         self.wdir = os.path.join(self.input_dir, "maja_working_directory")
@@ -158,7 +159,7 @@ class Workplan(object):
                 self.tile,
                 "--loglevel",
                 self.log_level]
-        return FileSystem.run_external_app(maja, args, logfile=logfile)
+        return FileSystem.run_external_app(maja, args, logfile=logfile, skip_error=self.skip_errors)
 
 
 class Init(Workplan):
@@ -276,7 +277,8 @@ class Nominal(Workplan):
                 cams_dates = [prod.date for prod in l1_list + [self.l1]]
                 cams_files = self.filter_cams_by_products(self.remaining_cams, cams_dates)
                 backup_wp = Backward(self.root, self.outdir, self.l1, l1_list=l1_list,
-                                     log_level=self.log_level, cams=self.aux_files + cams_files)
+                                     log_level=self.log_level, skip_errors=self.skip_errors,
+                                     cams=self.aux_files + cams_files)
             else:
                 logging.info("Setting up an INIT execution instead.")
                 backup_wp = Init(self.root, self.outdir, self.l1, self.log_level, cams=self.aux_files)

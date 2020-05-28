@@ -193,7 +193,7 @@ class GippSet(object):
         from Common import FileSystem
         import re
         hdr_reg = os.path.splitext(GIPPFile.regex)[0] + ".HDR"
-        hdrs = FileSystem.find(hdr_reg, self.out_path)
+        hdrs = FileSystem.find(hdr_reg, self.out_path, depth=1)
         raw_models = [re.search(hdr_reg, h).group(3).replace("_", "").lower() for h in hdrs]
         models = list(set(raw_models))
         return sorted(models)

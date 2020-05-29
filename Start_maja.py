@@ -405,7 +405,7 @@ class StartMaja(object):
         # Except: The time series is 'stopped' - The gap between two products is too large.
         # In this case, proceed with a re-init.
         for i, prod in enumerate(used_prod_l1[1:]):
-            if prod in has_l2 and self.overwrite:
+            if prod in has_l2 and not self.overwrite:
                 logger.debug("Skipping L1 product %s because it was already processed!" % prod.base)
                 continue
             # Note: i, in this case is the previous product -> Not the current one, which is i+1

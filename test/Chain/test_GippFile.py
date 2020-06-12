@@ -225,8 +225,7 @@ class TestGippFile(unittest.TestCase):
         self.assertFalse(g.check_completeness())
         g.download()
         self.assertTrue(g.check_completeness())
-        models_expected = ["continen"]
-        self.assertEqual(g.get_models(), models_expected)
+        self.assertTrue(g.get_models() in g.expected_models)
         FileSystem.remove_file(os.path.join(self.root, "wget-log"))
         if not os.getcwd() == g.out_path:
             FileSystem.remove_directory(g.out_path)
@@ -240,8 +239,7 @@ class TestGippFile(unittest.TestCase):
         self.assertFalse(g.check_completeness())
         g.download()
         self.assertTrue(g.check_completeness())
-        models_expected = sorted(["continen", "dust", "blackcar", "sulphate", "seasalt", "organicm"])
-        self.assertEqual(g.get_models(), models_expected)
+        self.assertTrue(g.get_models() in g.expected_models)
         FileSystem.remove_file(os.path.join(self.root, "wget-log"))
         if not os.getcwd() == g.out_path:
             FileSystem.remove_directory(g.out_path)

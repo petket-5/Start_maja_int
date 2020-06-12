@@ -18,7 +18,7 @@ class MNTFactory:
     Create a given DEM in Maja format
     """
     def __init__(self, site, platform_id, mission_field, mnt_resolutions, **kwargs):
-        self.type_dem = kwargs.get("type_dem", "all").lower()
+        self.type_dem = kwargs.get("type_dem", "any").lower()
         self.site = site
         self.plaform_id = platform_id
         self.mission_field = mission_field
@@ -34,8 +34,7 @@ class MNTFactory:
         """
         error = None
         # TODO Add more options here: ALOS, TDX...
-
-        if self.type_dem in ["eudem", "all"]:
+        if self.type_dem in ["eudem", "any"]:
             try:
                 return EuDEM(site=self.site,
                              **self.kwargs).to_maja_format(platform_id=self.plaform_id,
@@ -47,7 +46,7 @@ class MNTFactory:
                 error = e
                 logger.error(e)
 
-        if self.type_dem in ["srtm", "all"]:
+        if self.type_dem in ["srtm", "any"]:
             # SRTM is distributed in 90m.
             # Thus, all initial calculation has to be done at this resolution:
             self.site.res_x, self.site.res_y = 90, -90

@@ -356,7 +356,12 @@ class StartMaja(object):
             # Check if there is a recent L2 available for a nominal workplan
             min_time = used_prod_l1[0].date - used_prod_l1[0].max_l2_diff
             max_time = used_prod_l1[0].date
-            has_closest_l2_prod = [prod for prod in self.avail_input_l2 if min_time <= prod.date <= max_time]
+            # Filter closest l2 prod so the product itself is not included (in case of overwriting):
+            if self.overwrite:
+                has_closest_l2_prod = [prod for prod in self.avail_input_l2 if min_time <= prod.date <= max_time
+                                       and prod.date.strftime("%Y%m%d") != used_prod_l1[0].date.strftime("%Y%m%d")]
+            else:
+                has_closest_l2_prod = [prod for prod in self.avail_input_l2 if min_time <= prod.date <= max_time]
             if has_closest_l2_prod:
                 # Proceed with NOMINAL
                 workplans.append(Nominal(wdir=self.rep_work,

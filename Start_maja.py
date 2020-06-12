@@ -105,15 +105,16 @@ class StartMaja(object):
             raise ValueError("Start date has to be before the end date: %s -> %s" % (self.start, self.end))
 
         self.nbackward = kwargs.get("nbackward", int(8))
+        self.use_cams = kwargs.get("cams", False)
 
         self.cams_files = []
-        if self.rep_cams:
+        if self.rep_cams and self.use_cams:
             self.logger.info("Searching for CAMS")
             self.cams_files = self.get_cams_files()
             self.logger.info("...found %s CAMS files" % len(self.cams_files))
-
+        else:
+            self.logger.info("Skipping CAMS file detection.")
         self.logger.info("Checking GIPP files")
-        self.use_cams = kwargs.get("cams", False) and self.cams_files
         if not p.isdir(self.gipp_root):
             raise OSError("Cannot find GIPP folder: %s" % self.gipp_root)
         self.logger.info("Setting up GIPP folder: %s" % self.gipp_root)

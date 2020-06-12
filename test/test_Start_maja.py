@@ -102,8 +102,8 @@ class TestStartMaja01XYZ(unittest.TestCase):
         FileSystem.remove_directory(cls.product_root)
         FileSystem.remove_file(cls.folders_file)
         FileSystem.remove_directory(cls.cams)
-        FileSystem.remove_directory(cls.mnt.dbl[0])
-        FileSystem.remove_file(cls.mnt.hdr[0])
+        FileSystem.remove_directory(cls.mnt.dbl)
+        FileSystem.remove_file(cls.mnt.hdr)
 
     def test_dates_and_products(self):
         start_maja = StartMaja(self.folders_file,
@@ -181,6 +181,7 @@ class TestStartMaja01XYZ(unittest.TestCase):
         self.assertEqual(s.start, start)
         self.assertEqual(s.end, end)
 
+
 class TestStartMaja31TCH(unittest.TestCase):
 
     root = os.getcwd()
@@ -247,8 +248,8 @@ class TestStartMaja31TCH(unittest.TestCase):
         FileSystem.remove_directory(cls.product_root)
         FileSystem.remove_file(cls.folders_file)
         FileSystem.remove_directory(cls.cams)
-        FileSystem.remove_directory(cls.mnt.dbl[0])
-        FileSystem.remove_file(cls.mnt.hdr[0])
+        FileSystem.remove_directory(cls.mnt.dbl)
+        FileSystem.remove_file(cls.mnt.hdr)
 
 
 if __name__ == '__main__':

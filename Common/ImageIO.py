@@ -94,7 +94,7 @@ def gdal_write(drv_type, img, dst, projection, coordinates, **kwargs):
     :rtype: :class:`gdal.Dataset`
     """
     dtype = kwargs.get("dtype", None)
-    nodata = kwargs.get("nodata", "None")
+    nodata = kwargs.get("nodata", None)
     options = kwargs.get("options", [])
     driver = gdal.GetDriverByName(drv_type)
     # Add dimension for a single band-image
@@ -116,7 +116,7 @@ def gdal_write(drv_type, img, dst, projection, coordinates, **kwargs):
         band = img[:, :, bandIdx]
         raster_band = mem.GetRasterBand(bandIdx + 1)
         raster_band.WriteArray(band)
-        if nodata != "None":
+        if nodata:
             raster_band.SetNoDataValue(nodata)
     mem.FlushCache()
     return mem

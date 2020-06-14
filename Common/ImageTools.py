@@ -174,7 +174,7 @@ def gdal_merge(*src, dst=None, **options):
             options_list.append("-%s" % k)
         else:
             pass
-    src = [i.get_ds() if type(i) == GDalDatasetWrapper else i for i in src]
+    #src = [i.get_ds() if type(i) == GDalDatasetWrapper else i for i in src]
     # Remove previous existing file if writing to disk is enabled:
     if dst and type(dst) == str:
         FileSystem.remove_file(dst)
@@ -205,6 +205,4 @@ def gdal_retile(src, dst, **options):
     """
     if not os.path.isdir(dst):
         os.makedirs(dst)
-    if type(src) == GDalDatasetWrapper:
-        src = src.get_ds()
     return retile.run_tiling(ds_or_path=src, TargetDir=dst, **options)

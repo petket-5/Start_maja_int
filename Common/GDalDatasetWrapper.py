@@ -121,7 +121,11 @@ class GDalDatasetWrapper(object):
         :return: A gdal dataset object
         """
         p_out = "/vsimem/" + uuid.uuid4().hex
-        return ImageIO.write_to_memory(self.array, p_out, self.projection, self.geotransform)
+        try:
+            nodata = self.nodata_value
+        except AttributeError:
+            nodata = None
+        return ImageIO.write_to_memory(self.array, p_out, self.projection, self.geotransform, nodata=nodata)
 
     @property
     def _resolution(self):

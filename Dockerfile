@@ -1,7 +1,7 @@
 FROM centos:7.2.1511
 
 LABEL MAINTAINER "MAJA development team"
-LABEL VERSION="3.3.2" Architecture="amd64"
+LABEL VERSION="4.2.0" Architecture="amd64"
 
 ARG http_proxy
 ARG https_proxy
@@ -19,10 +19,10 @@ RUN wget http://dl.fedoraproject.org/pub/epel/7/x86_64/l/lbzip2-2.5-1.el7.x86_64
 RUN rpm -Uvh lbzip2-2.5-1.el7.x86_64.rpm
 
 
-COPY Maja_3.3.2_noTM.zip /maja.zip
-RUN unzip /maja.zip && /Maja_3.3.2_noTM.run --target /usr/local
+COPY Maja_4.2.0.zip /maja.zip
+RUN unzip /maja.zip && /Maja_4.2.0.run --target /usr/local
 
 RUN cd /opt/maja
-RUN git clone https://github.com/olivierhagolle/Start_maja
+RUN git clone https://github.com/CNES/Start-MAJA
 RUN cd Start_maja && rm folders.txt
 COPY folders.txt /opt/maja/Start_maja

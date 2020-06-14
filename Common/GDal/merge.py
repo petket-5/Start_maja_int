@@ -22,7 +22,7 @@ import tempfile
 import logging
 from osgeo import gdal
 from Common.FileSystem import run_external_app
-
+from Common.FileSystem import remove_directory
 
 def run_merge(*src, argv=None):
     """
@@ -52,6 +52,7 @@ def run_merge(*src, argv=None):
     argv = gdal.GeneralCmdLineProcessor(argv)
     options = argv + inputs
     assert run_external_app("gdal_merge.py", options) == 0, "Error running gdal_merge"
+    remove_directory(tmpdir)
     return gdal.Open(outpath)
 
 

@@ -53,6 +53,7 @@ def get_ndsi(red, swir, vrange=(-1, 1), dtype=np.float32):
     img_swir = np.array(swir.array, dtype=np.float32)
 
     # Compensate for nan:
+    np.seterr(divide='ignore', invalid='ignore')
     img_ndsi = np.where((img_red + img_swir) != 0, (img_red - img_swir) / (img_red + img_swir), -1)
 
     # Scale to vrange
@@ -94,6 +95,7 @@ def get_ndvi(red, nir, vrange=(-1, 1), dtype=np.float32):
     img_nir = np.array(nir.array, dtype=np.float32)
 
     # Compensate for nan:
+    np.seterr(divide='ignore', invalid='ignore')
     img_ndvi = np.where((img_red + img_nir) != 0, (img_red - img_nir) / (img_red + img_nir), -1)
 
     # Scale to vrange

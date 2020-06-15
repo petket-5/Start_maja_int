@@ -216,11 +216,11 @@ class TestImageTools(unittest.TestCase):
                              [98, 99]])
         # Some gdal_retile versions are producing the following image:
         # [[87, 89], [97, 99]].
-        np.testing.assert_allclose(expected, img_read)
+        np.testing.assert_allclose(expected, img_read, atol=1)
 
         # Untile
         ds_untiled = ImageTools.gdal_buildvrt(*tiles)
-        np.testing.assert_allclose(img, ds_untiled.array)
+        np.testing.assert_allclose(img, ds_untiled.array, atol=1)
         FileSystem.remove_file(path)
         FileSystem.remove_directory(tile_folder)
 

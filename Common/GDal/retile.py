@@ -68,7 +68,6 @@ def run_tiling(ds_or_path, **kwargs):
     outpath = kwargs["TargetDir"]
     # TODO Discard previously written files from `find`:
     files_written = sorted(FileSystem.find(r"%s_\d+_\d+.tif" % bname, path=outpath))
-    print(files_written)
     if del_tmp:
         FileSystem.remove_file(tmppath)
     return files_written

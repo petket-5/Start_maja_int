@@ -1,3 +1,6 @@
-GDAL>=2.3.1
+GDAL>2.3.0
 numpy
 scipy
+coverage
+pytest
+coveralls

@@ -1,8 +1,12 @@
-[PATH]
-repWork=/work/scratch/kettigp/Anaconda_workspace/Start_maja/work
-repGipp=/work/scratch/kettigp/Anaconda_workspace/Start_maja/gipp
-repMnt=/work/scratch/kettigp/MAJA/DTM
-repL1  =/work/scratch/kettigp/PEPS/S2-L1C
-repL2  =/work/scratch/kettigp/Anaconda_workspace/Start_maja/L2-Products
-exeMaja=/softs/projets/maccs/MAJA_INSTALL/4.1.0/bin/maja
-repCAMS=/work/CESBIO/projects/Maja/CAMS_Step0/
+[Maja_Inputs]
+repWork=./start_maja_work
+repGipp=./start_maja_gipp
+repL1  =./L1-Products
+repL2  =./L2-Products
+repMNT =./start_maja_dem
+exeMaja=/path/to/maja
+repCAMS=./start_maja_cams
+
+[DTM_Creation]
+repRAW =./start_maja_rawdem
+repGSW =./start_maja_gsw
